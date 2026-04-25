@@ -1,26 +1,28 @@
-# environments
-venv/
-env/
-.env
-
-# Python caching
+# Python
 __pycache__/
 *.py[cod]
-*$py.class
+.venv/
+venv/
 
-# IDEs
+# FastAPI / Alembic
+*.sqlite3
+*.db
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+frontend/.env.local
+frontend/.next/
+frontend/node_modules/
+
+# Local app data
+data/
+backend/data/
+
+# Editor / OS
+.DS_Store
+Thumbs.db
 .idea/
 .vscode/
 
-# OS generated files
-.DS_Store
-Thumbs.db
-
-# Large Models / Data
-# (The base tinyllama model is ~2.2GB, so it should not be committed. Users will run download_tinyllama.py)
-models/base_models/*
-!models/base_models/.gitkeep
-
-# Ignore training outputs/checkpoints if they get large
-# models/finetuned/*
-# !models/finetuned/.gitkeep

@@ -1,0 +1,18 @@
+{
+  "name": "personalaiasisstant",
+  "private": true,
+  "workspaces": [
+    "frontend"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --workspace frontend",
+    "build:web": "npm run build --workspace frontend",
+    "start:web": "npm run start --workspace frontend",
+    "dev:api": "python -m backend.app.main",
+    "dev": "concurrently \"npm run dev:web\" \"npm run dev:api\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
+
