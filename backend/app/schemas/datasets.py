@@ -53,3 +53,15 @@ class DatasetImportResponse(BaseModel):
     source_name: str
     version_label: str
     chunk_count: int
+
+
+class DatasetUpdateRequest(BaseModel):
+    name: str
+    description: str
+
+
+class DatasetUpdateResponse(BaseModel):
+    success: bool
+    dataset_id: int
+    name: str
+    description: str

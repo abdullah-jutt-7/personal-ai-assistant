@@ -31,6 +31,8 @@ from backend.app.schemas.datasets import (
     DatasetDetailResponse,
     DatasetSourceSummary,
     DatasetVersionSummary,
+    DatasetUpdateRequest,
+    DatasetUpdateResponse,
 )
 from backend.app.schemas.memory import (
     MemoryChunkSummary,
@@ -588,6 +590,34 @@ async def upload_dataset(
         version_label=version.version_label,
         chunk_count=len(chunks),
     )
+
+
+@router.put("/datasets/{dataset_id}", response_model=DatasetUpdateResponse)
+def update_dataset(
+    dataset_id: int,
+    payload: DatasetUpdateRequest,
+    db: Session = Depends(get_db),
+):
+    dataset = db.get(Dataset, dataset_id)
+    if dataset is None:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+
+    name = payload.name.strip()
+    description = payload.description.strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="Dataset name is required")
+
+    dataset.name = name
+    dataset.description = description
+    dataset.updated_at = datetime.utcnow()
+    db.commit()
+
+    return {
+        "success": True,
+        "dataset_id": dataset.id,
+        "name": dataset.name,
+        "description": dataset.description,
+    }
 
 
 @router.delete("/datasets/{dataset_id}")

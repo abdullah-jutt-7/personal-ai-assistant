@@ -50,6 +50,13 @@ export type DatasetDetail = DatasetSummary & {
   chunks: DatasetChunk[];
 };
 
+export type DatasetUpdateResult = {
+  success: boolean;
+  dataset_id: number;
+  name: string;
+  description: string;
+};
+
 export type MemorySummary = {
   id: number;
   name: string;

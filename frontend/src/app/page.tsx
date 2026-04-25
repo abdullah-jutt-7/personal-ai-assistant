@@ -12,6 +12,7 @@ import type {
   ConversationSummary,
   DatasetDetail,
   DatasetSummary,
+  DatasetUpdateResult,
   MemoryDetail,
   MemorySummary,
   MemoryUpdateResult,
@@ -59,6 +60,9 @@ export default function Page() {
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
   const [datasets, setDatasets] = useState<DatasetSummary[]>([]);
   const [selectedDataset, setSelectedDataset] = useState<DatasetDetail | null>(null);
+  const [datasetDraftName, setDatasetDraftName] = useState("");
+  const [datasetDraftDescription, setDatasetDraftDescription] = useState("");
+  const [datasetEditStatus, setDatasetEditStatus] = useState("");
 
   useEffect(() => {
     const storedTheme = window.localStorage.getItem(themeStorageKey) as Theme | null;
@@ -146,9 +150,13 @@ export default function Page() {
       setDatasets(datasetData);
       setMemorySources(memoryData);
       setSelectedMemory(null);
+      setSelectedDataset(null);
       setMemoryDraftName("");
       setMemoryDraftText("");
       setMemoryEditStatus("");
+      setDatasetDraftName("");
+      setDatasetDraftDescription("");
+      setDatasetEditStatus("");
 
       if (convData.length > 0) {
         const first = convData[0];
@@ -422,6 +430,9 @@ export default function Page() {
       }
       if (selectedDataset?.id === datasetId) {
         setSelectedDataset(null);
+        setDatasetDraftName("");
+        setDatasetDraftDescription("");
+        setDatasetEditStatus("");
       }
     } catch (error) {
       console.error(error);
@@ -514,11 +525,53 @@ export default function Page() {
     try {
       const res = await fetch(`${apiBaseUrl}/api/datasets/${datasetId}`);
       if (!res.ok) return;
-      setSelectedDataset((await res.json()) as DatasetDetail);
+      const data = (await res.json()) as DatasetDetail;
+      setSelectedDataset(data);
+      setDatasetDraftName(data.name);
+      setDatasetDraftDescription(data.description);
+      setDatasetEditStatus("");
       setSelectedMemory(null);
       if (isCompactViewport) setSidebarOpen(false);
     } catch (error) {
       console.error(error);
+    }
+  }
+
+  async function saveDatasetDetails() {
+    if (!selectedDataset) return;
+
+    try {
+      const res = await fetch(`${apiBaseUrl}/api/datasets/${selectedDataset.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: datasetDraftName,
+          description: datasetDraftDescription,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Save failed with status ${res.status}`);
+      }
+
+      const data = (await res.json()) as DatasetUpdateResult;
+      setDatasetEditStatus(`Saved dataset ${data.dataset_id}`);
+
+      const refreshedDetail = await fetch(`${apiBaseUrl}/api/datasets/${selectedDataset.id}`);
+      if (refreshedDetail.ok) {
+        const next = (await refreshedDetail.json()) as DatasetDetail;
+        setSelectedDataset(next);
+        setDatasetDraftName(next.name);
+        setDatasetDraftDescription(next.description);
+      }
+
+      const refresh = await fetch(`${apiBaseUrl}/api/datasets`);
+      if (refresh.ok) {
+        setDatasets((await refresh.json()) as DatasetSummary[]);
+      }
+    } catch (error) {
+      console.error(error);
+      setDatasetEditStatus("Save failed");
     }
   }
 
@@ -625,6 +678,38 @@ export default function Page() {
                         <p className="mt-1 text-lg font-semibold">{selectedDataset.chunk_count}</p>
                       </div>
                     </div>
+
+                    <section className="space-y-2">
+                      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
+                        Edit Dataset
+                      </p>
+                      <label className="block space-y-2 text-xs uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
+                        Name
+                        <input
+                          value={datasetDraftName}
+                          onChange={(event) => setDatasetDraftName(event.target.value)}
+                          className="w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] px-3 py-2 text-sm text-[rgb(var(--text))] outline-none"
+                        />
+                      </label>
+                      <label className="block space-y-2 text-xs uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
+                        Description
+                        <textarea
+                          value={datasetDraftDescription}
+                          onChange={(event) => setDatasetDraftDescription(event.target.value)}
+                          className="min-h-[120px] w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] px-3 py-2 text-sm leading-6 text-[rgb(var(--text))] outline-none"
+                        />
+                      </label>
+                      <div className="flex items-center justify-between gap-3">
+                        <button
+                          type="button"
+                          onClick={saveDatasetDetails}
+                          className="rounded-full bg-[rgb(var(--text))] px-4 py-2 text-sm font-semibold text-[rgb(var(--bg))]"
+                        >
+                          Save changes
+                        </button>
+                        <span className="text-xs text-[rgb(var(--muted))]">{datasetEditStatus}</span>
+                      </div>
+                    </section>
 
                     <section className="space-y-2">
                       <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--muted))]">

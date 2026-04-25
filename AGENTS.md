@@ -89,6 +89,7 @@ Dataset flow:
 - Dataset chunks should be used as bounded prompt-time context when relevant.
 - Dataset management UI should support removing imported datasets and cleaning up their stored files.
 - Dataset management UI should also support a read-only details view with sources, versions, and chunk previews.
+- Dataset management UI should also support editing the dataset name and description without re-importing the files.
 
 ## Interface Requirements
 
@@ -228,6 +229,7 @@ We will implement the project in stages.
 - [x] Use dataset chunks as bounded prompt-time context.
 - [x] Add delete controls for imported datasets.
 - [x] Add dataset details panel for inspection.
+- [x] Add dataset editing workflow.
 - [x] Add memory source list and delete controls.
 - [x] Add memory details inspection flow.
 - [x] Add memory editing workflow.
@@ -265,6 +267,7 @@ Repo status:
 - Imported datasets now contribute bounded prompt-time context chunks alongside memory.
 - Imported datasets can now be deleted from the sidebar, which also cleans up their local storage folder.
 - Imported datasets can now be inspected through a details panel showing sources, versions, and chunk previews.
+- Imported datasets can now be renamed and re-described from the details panel.
 - This file now defines the working direction.
 
 Immediate next step:
