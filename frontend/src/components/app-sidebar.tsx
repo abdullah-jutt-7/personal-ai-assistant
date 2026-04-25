@@ -1,7 +1,7 @@
 import type { ChangeEvent } from "react";
-import { FilePenLine, FileText, LibraryBig, Plus, Search, Settings2, Sparkles, Trash2, X } from "lucide-react";
+import { FilePenLine, FileText, LibraryBig, Plus, Search, Sparkles, Trash2, X } from "lucide-react";
 
-import type { ConversationSummary, DatasetSummary, InstalledModel, MemorySummary } from "@/lib/chat-types";
+import type { ConversationSummary, DatasetSummary, MemorySummary } from "@/lib/chat-types";
 
 type SidebarProps = {
   conversations: ConversationSummary[];
@@ -25,12 +25,6 @@ type SidebarProps = {
   onSelectDataset: (datasetId: number) => void;
   onDeleteMemory: (memoryId: number) => void;
   onSelectMemory: (memoryId: number) => void;
-  modelDraft: string;
-  modelEditStatus: string;
-  installedModels: InstalledModel[];
-  onModelDraftChange: (value: string) => void;
-  onSaveModel: () => void;
-  onRefreshModels: () => void;
 };
 
 export function AppSidebar({
@@ -55,12 +49,6 @@ export function AppSidebar({
   onSelectDataset,
   onDeleteMemory,
   onSelectMemory,
-  modelDraft,
-  modelEditStatus,
-  installedModels,
-  onModelDraftChange,
-  onSaveModel,
-  onRefreshModels,
 }: SidebarProps) {
   return (
     <aside
@@ -102,44 +90,6 @@ export function AppSidebar({
         <Plus className="h-4 w-4" />
         New conversation
       </button>
-
-      <div className="mb-3 space-y-3 rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
-        <div className="flex items-center gap-2 text-sm font-semibold">
-          <Settings2 className="h-4 w-4" />
-          App settings
-        </div>
-        <label className="block space-y-2 text-xs font-medium text-[rgb(var(--muted))]">
-          Active model
-          <input
-            value={modelDraft}
-            onChange={(event) => onModelDraftChange(event.target.value)}
-            list="installed-models"
-            className="w-full rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--panel))] px-3 py-2 text-sm text-[rgb(var(--text))] outline-none"
-          />
-          <datalist id="installed-models">
-            {installedModels.map((model) => (
-              <option key={model.name} value={model.name} />
-            ))}
-          </datalist>
-        </label>
-        <div className="flex items-center justify-between gap-3">
-          <button
-            type="button"
-            onClick={onSaveModel}
-            className="rounded-full bg-[rgb(var(--text))] px-4 py-2 text-sm font-semibold text-[rgb(var(--bg))]"
-          >
-            Save model
-          </button>
-          <button
-            type="button"
-            onClick={onRefreshModels}
-            className="rounded-full border border-[rgb(var(--border))] bg-[rgb(var(--panel))] px-4 py-2 text-xs font-medium text-[rgb(var(--text))]"
-          >
-            Refresh list
-          </button>
-        </div>
-        <span className="text-xs text-[rgb(var(--muted))]">{modelEditStatus}</span>
-      </div>
 
       <div className="space-y-2">
         <div className="flex items-center gap-2 px-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-[rgb(var(--muted))]">

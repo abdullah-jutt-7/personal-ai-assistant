@@ -61,8 +61,6 @@ export default function Page() {
   const [thinkingText, setThinkingText] = useState("");
   const [theme, setTheme] = useState<Theme>("dark");
   const [activeModel, setActiveModel] = useState("qwen3:4b");
-  const [modelDraft, setModelDraft] = useState("qwen3:4b");
-  const [modelEditStatus, setModelEditStatus] = useState("");
   const [installedModels, setInstalledModels] = useState<InstalledModel[]>([]);
   const [isCompactViewport, setIsCompactViewport] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -175,7 +173,6 @@ export default function Page() {
       setStatus(`${health.assistant} ready on local backend`);
       const nextModel = modelData.ollama_model ?? health.model ?? "qwen3:4b";
       setActiveModel(nextModel);
-      setModelDraft(nextModel);
       if (themeData.theme === "dark" || themeData.theme === "light") {
         setTheme(themeData.theme);
       }
@@ -189,7 +186,6 @@ export default function Page() {
       setMemoryDraftName("");
       setMemoryDraftText("");
       setMemoryEditStatus("");
-      setModelEditStatus("");
       setDatasetDraftName("");
       setDatasetDraftDescription("");
       setDatasetEditStatus("");
@@ -671,16 +667,29 @@ export default function Page() {
     }
   }
 
-  async function saveModelSettings() {
-    const trimmed = modelDraft.trim();
-    if (!trimmed) return;
+  async function refreshInstalledModels() {
+    try {
+      const res = await fetch(`${apiBaseUrl}/api/models`);
+      if (!res.ok) return;
+      const data = (await res.json()) as InstalledModel[];
+      setInstalledModels(data);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async function selectModel(modelName: string) {
+    const nextModel = modelName.trim();
+    if (!nextModel) return;
+
+    setActiveModel(nextModel);
 
     try {
       const res = await fetch(`${apiBaseUrl}/api/settings/model`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ollama_model: trimmed,
+          ollama_model: nextModel,
         }),
       });
 
@@ -690,27 +699,11 @@ export default function Page() {
 
       const data = (await res.json()) as ModelSettings;
       setActiveModel(data.ollama_model);
-      setModelDraft(data.ollama_model);
-      setModelEditStatus("Model saved");
-
       const healthRes = await fetch(`${apiBaseUrl}/api/health`);
       if (healthRes.ok) {
         const health = await healthRes.json();
         setStatus(`${health.assistant} ready on local backend`);
-        setActiveModel(health.model ?? data.ollama_model);
       }
-    } catch (error) {
-      console.error(error);
-      setModelEditStatus("Save failed");
-    }
-  }
-
-  async function refreshInstalledModels() {
-    try {
-      const res = await fetch(`${apiBaseUrl}/api/models`);
-      if (!res.ok) return;
-      const data = (await res.json()) as InstalledModel[];
-      setInstalledModels(data);
     } catch (error) {
       console.error(error);
     }
@@ -775,23 +768,20 @@ export default function Page() {
           onDatasetUpload={onDatasetUpload}
           onDeleteDataset={deleteDataset}
           onSelectDataset={openDatasetDetails}
-          modelDraft={modelDraft}
-          modelEditStatus={modelEditStatus}
-          installedModels={installedModels}
-          onModelDraftChange={setModelDraft}
-          onSaveModel={saveModelSettings}
-          onRefreshModels={refreshInstalledModels}
         />
 
         <section className="app-panel flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[2rem]">
           <ChatHeader
             accentText={accentText}
-          activeModel={activeModel}
-          isCompactViewport={isCompactViewport}
-          theme={theme}
-          onOpenSidebar={() => setSidebarOpen(true)}
-          onToggleTheme={handleToggleTheme}
-        />
+            activeModel={activeModel}
+            installedModels={installedModels}
+            isCompactViewport={isCompactViewport}
+            theme={theme}
+            onOpenSidebar={() => setSidebarOpen(true)}
+            onRefreshModels={refreshInstalledModels}
+            onSelectModel={selectModel}
+            onToggleTheme={handleToggleTheme}
+          />
 
           <ThinkingPanel thinkingText={thinkingText} />
 

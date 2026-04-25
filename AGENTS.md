@@ -123,6 +123,7 @@ Requirements:
 - Include a theme toggle that remembers the user's preference locally.
 - Stream assistant responses live into the chat bubble instead of waiting for the full completion.
 - The current design priority is a minimal, uncluttered, premium interface; reduce card clutter and dense UI chrome where possible.
+- Keep app-level model selection in the header as a styled dropdown; do not bring the settings card back into the sidebar.
 
 Design direction:
 - Inspired by premium AI apps such as ChatGPT and You.com, but not copied exactly.
@@ -280,6 +281,7 @@ Repo status:
 - Chat conversations can now be renamed and deleted from the sidebar.
 - The sidebar can now filter conversations by title.
 - Keep iterating toward a cleaner, less cluttered visual language that feels closer to the minimal AI-app examples.
+- The model picker now lives in the header as a custom dropdown.
 - This file now defines the working direction.
 
 Immediate next step:
