@@ -69,11 +69,11 @@ export function ChatHeader({
         <button
           type="button"
           onClick={onToggleTheme}
-          className="inline-flex items-center gap-2 rounded-full bg-[rgb(var(--panel-soft)/0.78)] px-4 py-2 text-xs font-medium text-[rgb(var(--text))] transition hover:scale-[1.01]"
-          aria-label="Toggle theme"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[rgb(var(--panel-soft)/0.78)] text-[rgb(var(--text))] transition hover:scale-[1.01]"
+          aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          title={theme === "dark" ? "Light mode" : "Dark mode"}
         >
           {theme === "dark" ? <SunMedium className="h-4 w-4" /> : <MoonStar className="h-4 w-4" />}
-          {theme === "dark" ? "Light mode" : "Dark mode"}
         </button>
         <div ref={modelMenuRef} className="relative">
           <button

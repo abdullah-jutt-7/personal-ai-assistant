@@ -1,5 +1,4 @@
 import clsx from "clsx";
-import { Sparkles } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { MarkdownContent } from "@/components/markdown-content";
@@ -43,9 +42,9 @@ export function MessageList({ messages, theme }: MessageListProps) {
           >
             {isUser ? (
               <div className="max-w-[82%]">
-                <div className="rounded-full bg-[linear-gradient(135deg,rgb(var(--accent)),rgb(var(--accent-2)))] px-5 py-3 text-sm leading-7 text-white shadow-[0_10px_20px_rgba(99,79,247,0.12)]">
-                <p className="whitespace-pre-wrap">{visibleText}</p>
-              </div>
+                <div className="inline-flex w-fit max-w-full rounded-[1.1rem] bg-[rgb(var(--panel-soft)/0.5)] px-4 py-2 text-sm leading-6 text-[rgb(var(--text))] ring-1 ring-[rgb(var(--border)/0.04)] shadow-[0_6px_14px_rgba(0,0,0,0.03)]">
+                  <p className="whitespace-pre-wrap">{visibleText}</p>
+                </div>
                 {shouldTruncate && (
                   <button
                     type="button"
@@ -62,20 +61,8 @@ export function MessageList({ messages, theme }: MessageListProps) {
                 )}
               </div>
             ) : (
-              <div className="flex max-w-[92%] items-start gap-3">
-                <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,rgb(var(--accent)),rgb(var(--accent-2)))] text-white shadow-[0_10px_20px_rgba(99,79,247,0.14)]">
-                  <Sparkles className="h-4 w-4" />
-                </div>
-                <div
-                  className={clsx(
-                    "w-full text-sm leading-7",
-                    theme === "light"
-                      ? "text-[rgb(var(--text))]"
-                      : "rounded-[1.35rem] bg-[rgb(var(--panel-soft)/0.56)] px-5 py-4 text-[rgb(var(--text))]",
-                  )}
-                >
-                  <MarkdownContent content={message.content} theme={theme} />
-                </div>
+              <div className="max-w-[92%] text-sm leading-7 text-[rgb(var(--text))]">
+                <MarkdownContent content={message.content} theme={theme} />
               </div>
             )}
           </div>

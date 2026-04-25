@@ -116,6 +116,10 @@ Requirements:
 - Include a clear model/status area in the header.
 - For the final-year demo, support an expandable reasoning/thinking view so we can show what the model is doing without cluttering the main chat.
 - Assistant responses should render rich markdown with styled headings, paragraphs, lists, inline code, tables, and highlighted code blocks.
+- Assistant responses in the main chat should stay open and text-first, without a repeated avatar icon or heavy message card background.
+- User question bubbles should use a quiet flat surface, matching the upload-style pill treatment instead of a colorful gradient.
+- Conversation action popovers in the sidebar should float above adjacent sections with a strong enough stacking order to stay visible.
+- The light/dark theme control in the header should be icon-only, with labels exposed through accessible text instead of visible button copy.
 - Memory management UI should allow viewing and deleting uploaded memory sources.
 - Memory management UI should also support a read-only details view with chunks and file metadata.
 - Memory management UI should also support editing the memory title and content text.

@@ -116,7 +116,7 @@ export function AppSidebar({
   return (
     <aside
       className={[
-        "shrink-0 overflow-hidden border-r border-[rgb(var(--border)/0.06)] bg-[rgb(var(--panel)/0.72)] p-[clamp(12px,0.85vw,16px)] backdrop-blur-2xl transition-transform duration-200 ease-out",
+        "shrink-0 overflow-visible border-r border-[rgb(var(--border)/0.06)] bg-[rgb(var(--panel)/0.72)] p-[clamp(12px,0.85vw,16px)] backdrop-blur-2xl transition-transform duration-200 ease-out",
         "rounded-r-[2rem] rounded-l-none shadow-[0_18px_50px_rgba(0,0,0,0.08)]",
         isCompactViewport ? "fixed inset-y-[clamp(8px,0.75vw,20px)] left-[clamp(8px,0.75vw,20px)] z-40" : "relative",
         isCompactViewport && !sidebarOpen ? "-translate-x-[110%]" : "translate-x-0",
@@ -210,14 +210,14 @@ export function AppSidebar({
                       <button
                         type="button"
                         onClick={() => setMenuOpenId((current) => (current === conversation.id ? null : conversation.id))}
-                        className="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-[rgb(var(--panel-soft)/0.86)] text-[rgb(var(--muted))] opacity-100 transition hover:text-[rgb(var(--text))] md:opacity-0 md:group-hover:opacity-100"
+                        className="absolute right-2 top-2 z-40 inline-flex h-8 w-8 items-center justify-center rounded-full bg-[rgb(var(--panel-soft)/0.86)] text-[rgb(var(--muted))] opacity-100 transition hover:text-[rgb(var(--text))] md:opacity-0 md:group-hover:opacity-100"
                         aria-label={`Open conversation actions for ${conversation.title}`}
                       >
                         <EllipsisVertical className="h-4 w-4" />
                       </button>
 
                       {isMenuOpen && (
-                        <div className="absolute right-2 top-[2.3rem] z-20 w-40 rounded-[1rem] bg-[rgb(var(--panel))] p-1 shadow-[0_16px_34px_rgba(0,0,0,0.12)] ring-1 ring-[rgb(var(--border)/0.06)]">
+                        <div className="absolute right-2 top-[2.3rem] z-50 w-40 rounded-[1rem] bg-[rgb(var(--panel))] p-1 shadow-[0_16px_34px_rgba(0,0,0,0.12)] ring-1 ring-[rgb(var(--border)/0.06)]">
                           <button
                             type="button"
                             onClick={() => {
