@@ -78,6 +78,7 @@ Memory flow:
 - Memory is stored in SQLite.
 - Memory is injected into the prompt on future chats.
 - This is not retraining; it is persistent local context.
+- Memory injection should stay bounded and source-aware so it helps without overwhelming the model prompt.
 
 Dataset flow:
 - Store datasets locally in a dedicated folder and track them in SQLite metadata.
@@ -187,7 +188,7 @@ We will implement the project in stages.
 - [x] Add file upload.
 - [x] Parse `.txt` memory files.
 - [x] Save memory locally.
-- [ ] Inject memory into prompts.
+- [x] Inject memory into prompts.
 
 ### Stage 2b - Datasets
 - [ ] Define local dataset storage structure.
@@ -240,6 +241,7 @@ Repo status:
 - Chat scrolling is now constrained to the conversation pane, and Enter-to-send is supported.
 - Assistant responses now render richer markdown and styled code blocks.
 - The conversation pane now auto-scrolls to the latest message during normal chat flow.
+- Uploaded memory now influences future prompts through a bounded local-memory system prompt section.
 - This file now defines the working direction.
 
 Immediate next step:

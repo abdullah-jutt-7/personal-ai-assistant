@@ -15,6 +15,7 @@ from backend.app.schemas.chat import (
     ConversationMessage,
     ConversationSummary,
 )
+from backend.app.services.memory_context import build_memory_context
 from backend.app.services.ollama_client import generate_reply, stream_reply
 
 
@@ -122,9 +123,10 @@ async def chat(request: ChatRequest, db: Session = Depends(get_db)):
         {"role": message.role, "content": message.content}
         for message in history
     ]
+    memory_context = build_memory_context(db)
 
     try:
-        assistant_text = await generate_reply(ollama_messages)
+        assistant_text = await generate_reply(ollama_messages, memory_context=memory_context)
     except Exception as exc:
         raise HTTPException(
             status_code=503,
@@ -181,6 +183,7 @@ async def chat_stream(request: ChatRequest, db: Session = Depends(get_db)):
         {"role": message.role, "content": message.content}
         for message in history
     ]
+    memory_context = build_memory_context(db)
 
     def sse(event: str, data: dict[str, object]) -> str:
         return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
@@ -198,7 +201,7 @@ async def chat_stream(request: ChatRequest, db: Session = Depends(get_db)):
                 },
             )
 
-            async for piece in stream_reply(ollama_messages):
+            async for piece in stream_reply(ollama_messages, memory_context=memory_context):
                 if piece["type"] == "thinking":
                     thinking_parts.append(piece["delta"])
                     yield sse("thinking", {"delta": piece["delta"]})
