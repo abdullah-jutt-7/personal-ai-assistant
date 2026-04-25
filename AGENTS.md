@@ -215,6 +215,8 @@ We will implement the project in stages.
 - Do not assume internet access after install.
 - Do not make the user configure a database manually.
 - Keep code modular and easy to package.
+- Keep the frontend and backend broken into feature-based modules and reusable components; avoid large monolithic files except for short-lived scaffolds.
+- Prefer small components for sidebar, chat header, theme toggle, message list, composer, memory upload, and status badges.
 - If a decision affects installer size, offline support, or user setup, treat it as a product decision, not just a code decision.
 
 ## Current Status
@@ -226,6 +228,7 @@ Repo status:
 - Dark and light mode theming is now implemented.
 - Full-screen responsive layout scaling is now implemented.
 - Compact sidebar drawer behavior on small screens is now implemented.
+- Frontend is now split into reusable feature components for sidebar, header, message list, composer, and thinking panel.
 - This file now defines the working direction.
 
 Immediate next step:

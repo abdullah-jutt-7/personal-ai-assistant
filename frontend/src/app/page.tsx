@@ -1,35 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import {
-  ArrowRight,
-  Bot,
-  FileText,
-  LibraryBig,
-  Menu,
-  MoonStar,
-  Plus,
-  Sparkles,
-  SunMedium,
-  X,
-} from "lucide-react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import clsx from "clsx";
+import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 
-type ConversationSummary = {
-  id: number;
-  title: string;
-  updated_at: string;
-};
-
-type ChatMessage = {
-  id?: number;
-  role: "user" | "assistant";
-  content: string;
-};
-
-type Theme = "dark" | "light";
+import { AppSidebar } from "@/components/app-sidebar";
+import { ChatHeader } from "@/components/chat-header";
+import { Composer } from "@/components/composer";
+import { MessageList } from "@/components/message-list";
+import { ThinkingPanel } from "@/components/thinking-panel";
+import type { ChatMessage, ConversationSummary, Theme } from "@/lib/chat-types";
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8000";
 const themeStorageKey = "personalaiasisstant-theme";
@@ -41,6 +19,14 @@ const starterMessages: ChatMessage[] = [
       "Hi, I am IntelliText. I am here to help with chat, memory, datasets, and future local AI workflows.",
   },
 ];
+
+type StreamPayload = {
+  conversation_id?: number;
+  delta?: string;
+  response?: string;
+  thinking?: string;
+  detail?: string;
+};
 
 export default function Page() {
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
@@ -84,6 +70,31 @@ export default function Page() {
   }, []);
 
   useEffect(() => {
+    if (!isCompactViewport) return;
+    document.body.style.overflow = sidebarOpen ? "hidden" : "";
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isCompactViewport, sidebarOpen]);
+
+  useEffect(() => {
+    if (!isCompactViewport || !sidebarOpen) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setSidebarOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [isCompactViewport, sidebarOpen]);
+
+  useEffect(() => {
     void bootstrap();
   }, []);
 
@@ -118,6 +129,7 @@ export default function Page() {
     const data = (await res.json()) as ChatMessage[];
     setMessages(data.length ? data : starterMessages);
     setActiveConversationId(conversationId);
+    if (isCompactViewport) setSidebarOpen(false);
   }
 
   async function startNewConversation() {
@@ -127,20 +139,21 @@ export default function Page() {
     setConversations((current) => [data, ...current]);
     setActiveConversationId(data.id);
     setMessages(starterMessages);
+    if (isCompactViewport) setSidebarOpen(false);
   }
 
   async function sendMessage() {
     const trimmed = input.trim();
     if (!trimmed || isSending) return;
 
-    const optimisticUserMessage: ChatMessage = { role: "user", content: trimmed };
-    setMessages((current) => [...current, optimisticUserMessage]);
+    setMessages((current) => [...current, { role: "user", content: trimmed }]);
     setInput("");
     setIsSending(true);
     setThinkingText("");
 
+    let assistantIndex = -1;
+
     try {
-      let assistantIndex = -1;
       setMessages((current) => {
         const next = [...current, { role: "assistant" as const, content: "" }];
         assistantIndex = next.length - 1;
@@ -210,13 +223,7 @@ export default function Page() {
           const { eventName, dataText } = parseEventBlock(block);
           if (!dataText) continue;
 
-          const payload = JSON.parse(dataText) as {
-            conversation_id?: number;
-            delta?: string;
-            response?: string;
-            thinking?: string;
-            detail?: string;
-          };
+          const payload = JSON.parse(dataText) as StreamPayload;
 
           if (eventName === "meta" && payload.conversation_id) {
             setActiveConversationId(payload.conversation_id);
@@ -283,7 +290,7 @@ export default function Page() {
     }
   }
 
-  async function onMemoryUpload(event: React.ChangeEvent<HTMLInputElement>) {
+  async function onMemoryUpload(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -308,6 +315,7 @@ export default function Page() {
 
       if (data.success) {
         setMemoryFileName(`${data.name} (${data.chunk_count} chunks saved)`);
+        if (isCompactViewport) setSidebarOpen(false);
       }
     } catch (error) {
       console.error(error);
@@ -337,239 +345,41 @@ export default function Page() {
         className="flex min-h-screen w-full gap-[clamp(10px,1vw,22px)]"
         style={{ padding: "clamp(8px, 0.75vw, 20px)" }}
       >
-        <aside
-          className={clsx(
-            "app-panel shrink-0 rounded-[2rem] p-[clamp(14px,1vw,20px)] transition-transform duration-200 ease-out",
-            isCompactViewport
-              ? "fixed inset-y-[clamp(8px,0.75vw,20px)] left-[clamp(8px,0.75vw,20px)] z-40"
-              : "relative",
-            isCompactViewport && !sidebarOpen ? "-translate-x-[110%]" : "translate-x-0",
-          )}
-          style={{
-            width: "clamp(300px, 21vw, 390px)",
-          }}
-        >
-          <div className="mb-6 flex items-start justify-between gap-3">
-            <div className="flex flex-1 items-center gap-3 rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,rgb(var(--accent)),rgb(var(--accent-2)))] text-white">
-                <Sparkles className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-[rgb(var(--muted))]">PersonalAIAsisstant</p>
-                <h1 className="text-lg font-semibold">IntelliText</h1>
-              </div>
-            </div>
-            {isCompactViewport && (
-              <button
-                type="button"
-                onClick={() => setSidebarOpen(false)}
-                className="rounded-full border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-2 text-[rgb(var(--text))]"
-                aria-label="Close sidebar"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-
-          <button
-            onClick={startNewConversation}
-            className="mb-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--text))] px-4 py-3 text-sm font-semibold text-[rgb(var(--bg))] transition hover:scale-[1.01]"
-          >
-            <Plus className="h-4 w-4" />
-            New conversation
-          </button>
-
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 px-2 text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
-              <LibraryBig className="h-4 w-4" />
-              Chats
-            </div>
-            <div className="max-h-[340px] space-y-2 overflow-auto pr-1">
-              {conversations.length === 0 && (
-                <div className="rounded-2xl border border-dashed border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-4 text-sm text-[rgb(var(--muted))]">
-                  No conversations yet.
-                </div>
-              )}
-              {conversations.map((conversation) => (
-                <button
-                  key={conversation.id}
-                  onClick={() => loadConversation(conversation.id)}
-                  className={clsx(
-                    "w-full rounded-2xl border px-4 py-3 text-left transition",
-                    activeConversationId === conversation.id
-                      ? "border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))]"
-                      : "border-[rgb(var(--border))] bg-[rgb(var(--panel))] hover:bg-[rgb(var(--panel-soft))]",
-                  )}
-                >
-                  <p className="truncate text-sm font-medium">{conversation.title}</p>
-                  <p className="mt-1 text-xs text-[rgb(var(--muted))]">
-                    Updated {new Date(conversation.updated_at).toLocaleString()}
-                  </p>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="mt-6 space-y-3 rounded-3xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-4">
-            <div className="flex items-center gap-2 text-sm font-semibold">
-              <FileText className="h-4 w-4" />
-              Memory upload
-            </div>
-            <label className="flex cursor-pointer items-center justify-center rounded-2xl border border-dashed border-[rgb(var(--border))] bg-transparent px-4 py-4 text-sm text-[rgb(var(--muted))] transition hover:bg-[rgb(var(--panel))]">
-              <input
-                type="file"
-                accept=".txt"
-                className="hidden"
-                onChange={onMemoryUpload}
-              />
-              Upload .txt memory file
-            </label>
-            <p className="text-xs leading-5 text-[rgb(var(--muted))]">
-              Files will become local assistant memory in the next backend stage.
-            </p>
-            {memoryFileName && (
-              <p
-                className="rounded-xl px-3 py-2 text-xs text-[rgb(var(--text))]"
-                style={{ backgroundColor: "rgb(var(--accent) / 0.12)" }}
-              >
-                Ready to store: {memoryFileName}
-              </p>
-            )}
-          </div>
-        </aside>
+        <AppSidebar
+          conversations={conversations}
+          activeConversationId={activeConversationId}
+          memoryFileName={memoryFileName}
+          isCompactViewport={isCompactViewport}
+          sidebarOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          onNewConversation={startNewConversation}
+          onSelectConversation={loadConversation}
+          onMemoryUpload={onMemoryUpload}
+        />
 
         <section className="app-panel flex min-w-0 flex-1 flex-col rounded-[2rem]">
-          <header className="flex items-center justify-between border-b border-[rgb(var(--border))] px-[clamp(16px,1.3vw,28px)] py-[clamp(14px,1vw,20px)]">
-            <div className="flex items-center gap-3">
-              {isCompactViewport && (
-                <button
-                  type="button"
-                  onClick={() => setSidebarOpen(true)}
-                  className="rounded-full border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-2 text-[rgb(var(--text))]"
-                  aria-label="Open sidebar"
-                >
-                  <Menu className="h-4 w-4" />
-                </button>
-              )}
-              <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-[rgb(var(--muted))]">
-                Local AI workspace
-              </p>
-              <h2 className="mt-1 text-2xl font-semibold">IntelliText</h2>
-              </div>
-            </div>
+          <ChatHeader
+            accentText={accentText}
+            activeModel={activeModel}
+            isCompactViewport={isCompactViewport}
+            theme={theme}
+            onOpenSidebar={() => setSidebarOpen(true)}
+            onToggleTheme={() => setTheme((current) => (current === "dark" ? "light" : "dark"))}
+          />
 
-            <div className="flex items-center gap-3">
-              <div className="rounded-full border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] px-4 py-2 text-xs text-[rgb(var(--muted))]">
-                {accentText}
-              </div>
-              <button
-                type="button"
-                onClick={() => setTheme((current) => (current === "dark" ? "light" : "dark"))}
-                className="inline-flex items-center gap-2 rounded-full border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] px-4 py-2 text-xs font-medium text-[rgb(var(--text))] transition hover:scale-[1.01]"
-                aria-label="Toggle theme"
-              >
-                {theme === "dark" ? <SunMedium className="h-4 w-4" /> : <MoonStar className="h-4 w-4" />}
-                {theme === "dark" ? "Light mode" : "Dark mode"}
-              </button>
-            </div>
-          </header>
-
-          {thinkingText && (
-            <div className="border-b border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))]/50 px-[clamp(16px,1.3vw,28px)] py-3 text-xs text-[rgb(var(--muted))]">
-              <details className="group">
-                <summary className="cursor-pointer list-none font-medium text-[rgb(var(--text))]">
-                  Model thinking
-                </summary>
-                <div className="mt-2 whitespace-pre-wrap rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel))] p-3 leading-6 text-[rgb(var(--muted))]">
-                  {thinkingText}
-                </div>
-              </details>
-            </div>
-          )}
+          <ThinkingPanel thinkingText={thinkingText} />
 
           <div className="flex-1 overflow-auto px-[clamp(16px,1.3vw,28px)] py-[clamp(16px,1.3vw,28px)]">
-            <div className="space-y-4">
-              {messages.map((message, index) => (
-                <div
-                  key={`${message.role}-${index}`}
-                  className={clsx("flex", message.role === "user" ? "justify-end" : "justify-start")}
-                >
-                  <div
-                    className={clsx(
-                      "max-w-[80%] rounded-[1.75rem] border px-5 py-4 text-sm leading-7 shadow-lg",
-                      message.role === "user"
-                        ? "border-[rgb(var(--accent))] bg-[rgb(var(--accent))] text-white"
-                        : "border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] text-[rgb(var(--text))]",
-                    )}
-                  >
-                    {message.role === "assistant" ? (
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        components={{
-                          code({ className, children, ...props }) {
-                            return (
-                              <code
-                                className={clsx(
-                                  "rounded-md border border-[rgb(var(--border))] bg-[rgb(var(--panel))] px-1.5 py-0.5 text-[0.92em]",
-                                  className,
-                                )}
-                                {...props}
-                              >
-                                {children}
-                              </code>
-                            );
-                          },
-                          pre({ children, ...props }) {
-                            return (
-                              <pre
-                                className="overflow-x-auto rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel))] p-4 text-sm"
-                                {...props}
-                              >
-                                {children}
-                              </pre>
-                            );
-                          },
-                        }}
-                      >
-                        {message.content}
-                      </ReactMarkdown>
-                    ) : (
-                      <p className="whitespace-pre-wrap">{message.content}</p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+            <MessageList messages={messages} />
           </div>
 
-          <footer className="border-t border-[rgb(var(--border))] p-[clamp(12px,1vw,20px)]">
-            <div className="rounded-[1.75rem] border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
-              <textarea
-                value={input}
-                onChange={(event) => setInput(event.target.value)}
-                placeholder="Ask IntelliText anything..."
-                className="min-h-[92px] w-full resize-none bg-transparent px-2 py-2 text-sm text-[rgb(var(--text))] outline-none placeholder:text-[rgb(var(--muted))]"
-              />
-              <div className="mt-3 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2 text-xs text-[rgb(var(--muted))]">
-                  <Bot className="h-4 w-4" />
-                  Ollama-powered local chat
-                  <span className="rounded-full border border-[rgb(var(--border))] px-2 py-0.5 text-[10px] uppercase tracking-[0.25em]">
-                    {activeModel}
-                  </span>
-                </div>
-                <button
-                  onClick={sendMessage}
-                  className="inline-flex items-center gap-2 rounded-2xl bg-[rgb(var(--text))] px-4 py-2.5 text-sm font-semibold text-[rgb(var(--bg))] transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={isSending || input.trim().length === 0}
-                >
-                  Send
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-          </footer>
+          <Composer
+            activeModel={activeModel}
+            input={input}
+            isSending={isSending}
+            onChange={setInput}
+            onSend={sendMessage}
+          />
         </section>
       </div>
     </main>
