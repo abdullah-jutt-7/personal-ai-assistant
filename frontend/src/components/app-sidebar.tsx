@@ -1,6 +1,7 @@
 import type { ChangeEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { FilePenLine, FileText, LibraryBig, Plus, Search, Sparkles, Trash2, X } from "lucide-react";
+import { EllipsisVertical, FilePenLine, FileText, LibraryBig, Plus, Search, Sparkles, Trash2, X } from "lucide-react";
 
 import type { ConversationSummary, DatasetSummary, MemorySummary } from "@/lib/chat-types";
 
@@ -83,6 +84,19 @@ export function AppSidebar({
   onSelectMemory,
 }: SidebarProps) {
   const groupedConversations = groupConversations(conversations);
+  const [menuOpenId, setMenuOpenId] = useState<number | null>(null);
+  const menuRootRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const onPointerDown = (event: MouseEvent) => {
+      if (menuRootRef.current && !menuRootRef.current.contains(event.target as Node)) {
+        setMenuOpenId(null);
+      }
+    };
+
+    window.addEventListener("mousedown", onPointerDown);
+    return () => window.removeEventListener("mousedown", onPointerDown);
+  }, []);
 
   return (
     <aside
@@ -141,7 +155,7 @@ export function AppSidebar({
           />
         </label>
 
-        <div className="max-h-[340px] space-y-3 overflow-auto pr-1">
+        <div className="max-h-[340px] space-y-3 overflow-auto pr-1 scrollbar-hide">
           {conversations.length === 0 && (
             <div className="rounded-[1.15rem] border border-dashed border-[rgb(var(--border)/0.12)] bg-[rgb(var(--panel-soft)/0.72)] p-3 text-sm text-[rgb(var(--muted))]">
               No conversations yet.
@@ -154,39 +168,65 @@ export function AppSidebar({
                 {group.label}
               </div>
               <div className="space-y-2">
-                {group.items.map((conversation) => (
-                  <div
-                    key={conversation.id}
-                    className={[
-                      "group rounded-[1.1rem] border px-3 py-2.5 transition",
-                      activeConversationId === conversation.id
-                        ? "border-[rgb(var(--border)/0.11)] bg-[rgb(var(--panel-soft)/0.88)]"
-                        : "border-[rgb(var(--border)/0.08)] bg-transparent hover:bg-[rgb(var(--panel-soft)/0.64)]",
-                    ].join(" ")}
-                  >
-                    <button type="button" onClick={() => onSelectConversation(conversation.id)} className="w-full text-left">
-                      <p className="truncate text-sm font-medium text-[rgb(var(--text))]">{conversation.title}</p>
-                    </button>
-                    <div className="mt-2 flex items-center justify-end gap-2 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100">
+                {group.items.map((conversation) => {
+                  const isActive = activeConversationId === conversation.id;
+                  const isMenuOpen = menuOpenId === conversation.id;
+
+                  return (
+                    <div
+                      key={conversation.id}
+                      ref={isMenuOpen ? menuRootRef : undefined}
+                      className={[
+                        "group relative rounded-[1.1rem] border px-3 py-2.5 transition",
+                        isActive
+                          ? "border-[rgb(var(--border)/0.11)] bg-[rgb(var(--panel-soft)/0.88)]"
+                          : "border-[rgb(var(--border)/0.08)] bg-transparent hover:bg-[rgb(var(--panel-soft)/0.64)]",
+                      ].join(" ")}
+                    >
+                      <button type="button" onClick={() => onSelectConversation(conversation.id)} className="w-full text-left">
+                        <p className="max-w-[calc(100%-42px)] truncate text-sm font-medium text-[rgb(var(--text))]">
+                          {conversation.title}
+                        </p>
+                      </button>
+
                       <button
                         type="button"
-                        onClick={() => onRenameConversation(conversation.id, conversation.title)}
-                        className="inline-flex items-center gap-1 rounded-full border border-[rgb(var(--border)/0.08)] bg-[rgb(var(--panel-soft)/0.9)] px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-[rgb(var(--muted))] transition hover:text-[rgb(var(--text))]"
+                        onClick={() => setMenuOpenId((current) => (current === conversation.id ? null : conversation.id))}
+                        className="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-full border border-[rgb(var(--border)/0.08)] bg-[rgb(var(--panel-soft)/0.9)] text-[rgb(var(--muted))] opacity-100 transition hover:text-[rgb(var(--text))] md:opacity-0 md:group-hover:opacity-100"
+                        aria-label={`Open conversation actions for ${conversation.title}`}
                       >
-                        <FilePenLine className="h-3.5 w-3.5" />
-                        Rename
+                        <EllipsisVertical className="h-4 w-4" />
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => onDeleteConversation(conversation.id)}
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[rgb(var(--border)/0.08)] bg-[rgb(var(--panel-soft)/0.9)] text-[rgb(var(--muted))] transition hover:text-[rgb(var(--text))]"
-                        aria-label={`Delete conversation ${conversation.title}`}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
+
+                      {isMenuOpen && (
+                        <div className="absolute right-2 top-[2.3rem] z-20 w-40 rounded-[1rem] border border-[rgb(var(--border)/0.08)] bg-[rgb(var(--panel))] p-1 shadow-[0_16px_34px_rgba(0,0,0,0.16)]">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setMenuOpenId(null);
+                              onRenameConversation(conversation.id, conversation.title);
+                            }}
+                            className="flex w-full items-center gap-2 rounded-[0.85rem] px-3 py-2 text-left text-sm text-[rgb(var(--text))] transition hover:bg-[rgb(var(--panel-soft))]"
+                          >
+                            <FilePenLine className="h-4 w-4" />
+                            Rename
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setMenuOpenId(null);
+                              onDeleteConversation(conversation.id);
+                            }}
+                            className="flex w-full items-center gap-2 rounded-[0.85rem] px-3 py-2 text-left text-sm text-[rgb(var(--text))] transition hover:bg-[rgb(var(--panel-soft))]"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            Delete
+                          </button>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ))}
@@ -202,9 +242,7 @@ export function AppSidebar({
           <input type="file" accept=".txt" className="hidden" onChange={onMemoryUpload} />
           Upload .txt memory file
         </label>
-        <p className="text-xs leading-5 text-[rgb(var(--muted))]">
-          Saved locally and injected into prompts when relevant.
-        </p>
+        <p className="text-xs leading-5 text-[rgb(var(--muted))]">Saved locally and injected into prompts when relevant.</p>
         {memoryFileName && (
           <p className="rounded-xl px-3 py-2 text-xs text-[rgb(var(--text))]" style={{ backgroundColor: "rgb(var(--accent) / 0.12)" }}>
             Ready to store: {memoryFileName}
@@ -215,7 +253,7 @@ export function AppSidebar({
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
               Local memory
             </p>
-            <div className="max-h-[180px] space-y-2 overflow-auto pr-1">
+            <div className="max-h-[180px] space-y-2 overflow-auto pr-1 scrollbar-hide">
               {memories.map((memory) => (
                 <div
                   key={memory.id}
@@ -262,9 +300,7 @@ export function AppSidebar({
           <input type="file" accept=".txt,.csv,.json,.jsonl" className="hidden" onChange={onDatasetUpload} />
           Upload dataset file
         </label>
-        <p className="text-xs leading-5 text-[rgb(var(--muted))]">
-          Stored locally and tracked separately from chat memory.
-        </p>
+        <p className="text-xs leading-5 text-[rgb(var(--muted))]">Stored locally and tracked separately from chat memory.</p>
         {datasetFileName && (
           <p className="rounded-xl px-3 py-2 text-xs text-[rgb(var(--text))]" style={{ backgroundColor: "rgb(var(--accent) / 0.12)" }}>
             Last imported: {datasetFileName}
@@ -275,7 +311,7 @@ export function AppSidebar({
             <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
               Local datasets
             </p>
-            <div className="max-h-[180px] space-y-2 overflow-auto pr-1">
+            <div className="max-h-[180px] space-y-2 overflow-auto pr-1 scrollbar-hide">
               {datasets.map((dataset) => (
                 <div
                   key={dataset.id}

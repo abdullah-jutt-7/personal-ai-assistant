@@ -290,3 +290,5 @@ Repo status:
 Immediate next step:
 - Build the first end-to-end experience for memory injection and dataset management on top of the scaffold.
 - Continue the reference-driven UI pass so the sidebar, centered chat canvas, and markdown rendering match the supplied Stockverse layout more closely.
+- Match the reference interaction details as well: hidden main chat scrollbar, grouped sidebar chats with truncated titles, hover-revealed three-dot conversation actions, max-height composer growth with internal scrolling, and user-message truncation with See full / See less controls.
+- Add a centered jump-to-bottom button above the composer that appears whenever the user scrolls away from the newest chat message.

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
+import { ChevronDown } from "lucide-react";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { ChatHeader } from "@/components/chat-header";
@@ -70,6 +71,7 @@ export default function Page() {
   const [datasetDraftName, setDatasetDraftName] = useState("");
   const [datasetDraftDescription, setDatasetDraftDescription] = useState("");
   const [datasetEditStatus, setDatasetEditStatus] = useState("");
+  const [isChatAtBottom, setIsChatAtBottom] = useState(true);
   const filteredConversations = useMemo(() => {
     const query = conversationSearch.trim().toLowerCase();
     if (!query) return conversations;
@@ -140,7 +142,27 @@ export default function Page() {
       top: container.scrollHeight,
       behavior: isSending ? "smooth" : "auto",
     });
+    setIsChatAtBottom(true);
   }, [messages, thinkingText, isSending]);
+
+  const handleChatScroll = () => {
+    const container = chatScrollRef.current;
+    if (!container) return;
+
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    setIsChatAtBottom(distanceFromBottom < 24);
+  };
+
+  const scrollChatToBottom = () => {
+    const container = chatScrollRef.current;
+    if (!container) return;
+
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: "smooth",
+    });
+    setIsChatAtBottom(true);
+  };
 
   async function bootstrap() {
     try {
@@ -788,18 +810,32 @@ export default function Page() {
 
             <div
               ref={chatScrollRef}
-              className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-[clamp(16px,1.3vw,28px)] py-[clamp(18px,1.8vw,34px)]"
+              onScroll={handleChatScroll}
+              className="scrollbar-hide min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-[clamp(16px,1.3vw,28px)] py-[clamp(18px,1.8vw,34px)]"
             >
               <MessageList messages={messages} theme={theme} />
             </div>
 
-            <Composer
-              activeModel={activeModel}
-              input={input}
-              isSending={isSending}
-              onChange={setInput}
-              onSend={sendMessage}
-            />
+            <div className="relative">
+              {!isChatAtBottom && (
+                <button
+                  type="button"
+                  onClick={scrollChatToBottom}
+                  className="absolute left-1/2 top-0 z-20 inline-flex -translate-x-1/2 -translate-y-[calc(100%+12px)] items-center gap-2 rounded-full border border-[rgb(var(--border)/0.08)] bg-[rgb(var(--panel))] px-4 py-2 text-xs font-medium text-[rgb(var(--text))] shadow-[0_12px_26px_rgba(0,0,0,0.12)] transition hover:scale-[1.01]"
+                  aria-label="Scroll to bottom"
+                >
+                  <ChevronDown className="h-4 w-4" />
+                  Jump to bottom
+                </button>
+              )}
+              <Composer
+                activeModel={activeModel}
+                input={input}
+                isSending={isSending}
+                onChange={setInput}
+                onSend={sendMessage}
+              />
+            </div>
           </div>
         </section>
 
