@@ -19,4 +19,5 @@ export type DatasetSummary = {
   updated_at: string;
   source_count: number;
   version_count: number;
+  chunk_count: number;
 };

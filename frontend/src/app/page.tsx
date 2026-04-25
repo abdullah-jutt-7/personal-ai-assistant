@@ -360,10 +360,11 @@ export default function Page() {
         success: boolean;
         name: string;
         source_name: string;
+        chunk_count: number;
       };
 
       if (data.success) {
-        setDatasetFileName(`${data.name} (${data.source_name})`);
+        setDatasetFileName(`${data.name} (${data.source_name}, ${data.chunk_count} chunks)`);
         const refresh = await fetch(`${apiBaseUrl}/api/datasets`);
         if (refresh.ok) {
           setDatasets((await refresh.json()) as DatasetSummary[]);

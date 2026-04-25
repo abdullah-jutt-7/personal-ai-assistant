@@ -12,6 +12,7 @@ from backend.app.core.config import settings
 from backend.app.models.entities import (
     Conversation,
     Dataset,
+    DatasetChunk,
     DatasetSource,
     DatasetVersion,
     Message,
@@ -25,6 +26,7 @@ from backend.app.schemas.chat import (
     ConversationSummary,
 )
 from backend.app.schemas.datasets import DatasetImportResponse, DatasetSummary
+from backend.app.services.dataset_context import build_dataset_context
 from backend.app.services.dataset_store import hash_content, save_dataset_file
 from backend.app.services.memory_context import build_memory_context
 from backend.app.services.ollama_client import generate_reply, stream_reply
@@ -108,6 +110,9 @@ def list_datasets(db: Session = Depends(get_db)):
         version_count = db.scalar(
             select(func.count()).select_from(DatasetVersion).where(DatasetVersion.dataset_id == dataset.id)
         )
+        chunk_count = db.scalar(
+            select(func.count()).select_from(DatasetChunk).where(DatasetChunk.dataset_id == dataset.id)
+        )
         result.append(
             DatasetSummary(
                 id=dataset.id,
@@ -116,6 +121,7 @@ def list_datasets(db: Session = Depends(get_db)):
                 updated_at=dataset.updated_at.isoformat(),
                 source_count=source_count or 0,
                 version_count=version_count or 0,
+                chunk_count=chunk_count or 0,
             )
         )
 
@@ -161,9 +167,14 @@ async def chat(request: ChatRequest, db: Session = Depends(get_db)):
         for message in history
     ]
     memory_context = build_memory_context(db)
+    dataset_context = build_dataset_context(db)
 
     try:
-        assistant_text = await generate_reply(ollama_messages, memory_context=memory_context)
+        assistant_text = await generate_reply(
+            ollama_messages,
+            memory_context=memory_context,
+            dataset_context=dataset_context,
+        )
     except Exception as exc:
         raise HTTPException(
             status_code=503,
@@ -221,6 +232,7 @@ async def chat_stream(request: ChatRequest, db: Session = Depends(get_db)):
         for message in history
     ]
     memory_context = build_memory_context(db)
+    dataset_context = build_dataset_context(db)
 
     def sse(event: str, data: dict[str, object]) -> str:
         return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
@@ -238,7 +250,11 @@ async def chat_stream(request: ChatRequest, db: Session = Depends(get_db)):
                 },
             )
 
-            async for piece in stream_reply(ollama_messages, memory_context=memory_context):
+            async for piece in stream_reply(
+                ollama_messages,
+                memory_context=memory_context,
+                dataset_context=dataset_context,
+            ):
                 if piece["type"] == "thinking":
                     thinking_parts.append(piece["delta"])
                     yield sse("thinking", {"delta": piece["delta"]})
@@ -331,6 +347,14 @@ async def upload_dataset(
     if not raw:
         raise HTTPException(status_code=400, detail="Dataset file is empty.")
 
+    try:
+        content_text = raw.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail="Only UTF-8 text datasets are supported for now.",
+        ) from exc
+
     dataset_name = name.strip() or Path(file.filename or "dataset").stem or "dataset"
     dataset = Dataset(name=dataset_name, description=description.strip())
     db.add(dataset)
@@ -347,6 +371,21 @@ async def upload_dataset(
         content_hash=content_hash,
     )
     db.add(source)
+    db.flush()
+
+    chunks = [chunk.strip() for chunk in content_text.split("\n\n") if chunk.strip()]
+    if not chunks and content_text.strip():
+        chunks = [content_text.strip()]
+
+    for index, chunk in enumerate(chunks):
+        db.add(
+            DatasetChunk(
+                dataset_id=dataset.id,
+                source_id=source.id,
+                chunk_index=index,
+                chunk_text=chunk,
+            )
+        )
 
     version = DatasetVersion(
         dataset_id=dataset.id,
@@ -362,4 +401,5 @@ async def upload_dataset(
         name=dataset.name,
         source_name=source.file_name,
         version_label=version.version_label,
+        chunk_count=len(chunks),
     )

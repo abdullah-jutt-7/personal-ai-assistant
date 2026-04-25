@@ -8,6 +8,7 @@ class DatasetSummary(BaseModel):
     updated_at: str
     source_count: int
     version_count: int
+    chunk_count: int
 
 
 class DatasetImportResponse(BaseModel):
@@ -16,3 +17,4 @@ class DatasetImportResponse(BaseModel):
     name: str
     source_name: str
     version_label: str
+    chunk_count: int

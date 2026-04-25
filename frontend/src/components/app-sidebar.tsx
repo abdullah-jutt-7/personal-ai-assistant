@@ -160,7 +160,8 @@ export function AppSidebar({
                       <p className="text-sm font-medium">{dataset.name}</p>
                       <p className="mt-1 text-xs text-[rgb(var(--muted))]">
                         {dataset.source_count} source{dataset.source_count === 1 ? "" : "s"} ·{" "}
-                        {dataset.version_count} version{dataset.version_count === 1 ? "" : "s"}
+                        {dataset.version_count} version{dataset.version_count === 1 ? "" : "s"} ·{" "}
+                        {dataset.chunk_count} chunk{dataset.chunk_count === 1 ? "" : "s"}
                       </p>
                     </div>
                     <span className="rounded-full border border-[rgb(var(--border))] px-2 py-1 text-[10px] uppercase tracking-[0.24em] text-[rgb(var(--muted))]">

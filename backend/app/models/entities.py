@@ -89,6 +89,10 @@ class Dataset(Base):
         back_populates="dataset",
         cascade="all, delete-orphan",
     )
+    chunks: Mapped[list["DatasetChunk"]] = relationship(
+        back_populates="dataset",
+        cascade="all, delete-orphan",
+    )
     versions: Mapped[list["DatasetVersion"]] = relationship(
         back_populates="dataset",
         cascade="all, delete-orphan",
@@ -106,6 +110,19 @@ class DatasetSource(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
 
     dataset: Mapped["Dataset"] = relationship(back_populates="sources")
+
+
+class DatasetChunk(Base):
+    __tablename__ = "dataset_chunks"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    dataset_id: Mapped[int] = mapped_column(ForeignKey("datasets.id"), index=True)
+    source_id: Mapped[int] = mapped_column(ForeignKey("dataset_sources.id"), index=True)
+    chunk_index: Mapped[int] = mapped_column(Integer)
+    chunk_text: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
+
+    dataset: Mapped["Dataset"] = relationship(back_populates="chunks")
 
 
 class DatasetVersion(Base):
@@ -129,4 +146,3 @@ class AppMetadata(Base):
     value: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now)
-
