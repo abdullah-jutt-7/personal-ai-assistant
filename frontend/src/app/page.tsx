@@ -1,7 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, Bot, FileText, LibraryBig, MoonStar, Plus, Sparkles, SunMedium } from "lucide-react";
+import {
+  ArrowRight,
+  Bot,
+  FileText,
+  LibraryBig,
+  Menu,
+  MoonStar,
+  Plus,
+  Sparkles,
+  SunMedium,
+  X,
+} from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import clsx from "clsx";
@@ -42,6 +53,8 @@ export default function Page() {
   const [thinkingText, setThinkingText] = useState("");
   const [theme, setTheme] = useState<Theme>("dark");
   const [activeModel, setActiveModel] = useState("qwen3:4b");
+  const [isCompactViewport, setIsCompactViewport] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
     const storedTheme = window.localStorage.getItem(themeStorageKey) as Theme | null;
@@ -53,6 +66,22 @@ export default function Page() {
     document.documentElement.dataset.theme = theme;
     window.localStorage.setItem(themeStorageKey, theme);
   }, [theme]);
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 980px)");
+
+    const updateViewportState = () => {
+      setIsCompactViewport(media.matches);
+      setSidebarOpen(!media.matches);
+    };
+
+    updateViewportState();
+    media.addEventListener("change", updateViewportState);
+
+    return () => {
+      media.removeEventListener("change", updateViewportState);
+    };
+  }, []);
 
   useEffect(() => {
     void bootstrap();
@@ -292,17 +321,54 @@ export default function Page() {
   );
 
   return (
-    <main className="app-shell min-h-screen text-[rgb(var(--text))]">
-      <div className="mx-auto flex min-h-screen max-w-[1600px] gap-6 p-4 lg:p-6">
-        <aside className="app-panel w-[320px] shrink-0 rounded-3xl p-4">
-          <div className="mb-6 flex items-center gap-3 rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,rgb(var(--accent)),rgb(var(--accent-2)))] text-white">
-              <Sparkles className="h-5 w-5" />
+    <main
+      className="app-shell min-h-screen text-[rgb(var(--text))]"
+      style={{ fontSize: "clamp(14px, 0.28vw + 10.5px, 18px)" }}
+    >
+      {isCompactViewport && sidebarOpen && (
+        <button
+          type="button"
+          aria-label="Close sidebar overlay"
+          className="fixed inset-0 z-30 cursor-default bg-black/50 backdrop-blur-[1px]"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+      <div
+        className="flex min-h-screen w-full gap-[clamp(10px,1vw,22px)]"
+        style={{ padding: "clamp(8px, 0.75vw, 20px)" }}
+      >
+        <aside
+          className={clsx(
+            "app-panel shrink-0 rounded-[2rem] p-[clamp(14px,1vw,20px)] transition-transform duration-200 ease-out",
+            isCompactViewport
+              ? "fixed inset-y-[clamp(8px,0.75vw,20px)] left-[clamp(8px,0.75vw,20px)] z-40"
+              : "relative",
+            isCompactViewport && !sidebarOpen ? "-translate-x-[110%]" : "translate-x-0",
+          )}
+          style={{
+            width: "clamp(300px, 21vw, 390px)",
+          }}
+        >
+          <div className="mb-6 flex items-start justify-between gap-3">
+            <div className="flex flex-1 items-center gap-3 rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,rgb(var(--accent)),rgb(var(--accent-2)))] text-white">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-[rgb(var(--muted))]">PersonalAIAsisstant</p>
+                <h1 className="text-lg font-semibold">IntelliText</h1>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-medium text-[rgb(var(--muted))]">PersonalAIAsisstant</p>
-              <h1 className="text-lg font-semibold">IntelliText</h1>
-            </div>
+            {isCompactViewport && (
+              <button
+                type="button"
+                onClick={() => setSidebarOpen(false)}
+                className="rounded-full border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-2 text-[rgb(var(--text))]"
+                aria-label="Close sidebar"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </div>
 
           <button
@@ -373,12 +439,24 @@ export default function Page() {
         </aside>
 
         <section className="app-panel flex min-w-0 flex-1 flex-col rounded-[2rem]">
-          <header className="flex items-center justify-between border-b border-[rgb(var(--border))] px-6 py-4">
-            <div>
+          <header className="flex items-center justify-between border-b border-[rgb(var(--border))] px-[clamp(16px,1.3vw,28px)] py-[clamp(14px,1vw,20px)]">
+            <div className="flex items-center gap-3">
+              {isCompactViewport && (
+                <button
+                  type="button"
+                  onClick={() => setSidebarOpen(true)}
+                  className="rounded-full border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-2 text-[rgb(var(--text))]"
+                  aria-label="Open sidebar"
+                >
+                  <Menu className="h-4 w-4" />
+                </button>
+              )}
+              <div>
               <p className="text-xs uppercase tracking-[0.3em] text-[rgb(var(--muted))]">
                 Local AI workspace
               </p>
               <h2 className="mt-1 text-2xl font-semibold">IntelliText</h2>
+              </div>
             </div>
 
             <div className="flex items-center gap-3">
@@ -398,7 +476,7 @@ export default function Page() {
           </header>
 
           {thinkingText && (
-            <div className="border-b border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))]/50 px-6 py-3 text-xs text-[rgb(var(--muted))]">
+            <div className="border-b border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))]/50 px-[clamp(16px,1.3vw,28px)] py-3 text-xs text-[rgb(var(--muted))]">
               <details className="group">
                 <summary className="cursor-pointer list-none font-medium text-[rgb(var(--text))]">
                   Model thinking
@@ -410,7 +488,7 @@ export default function Page() {
             </div>
           )}
 
-          <div className="flex-1 overflow-auto px-6 py-6">
+          <div className="flex-1 overflow-auto px-[clamp(16px,1.3vw,28px)] py-[clamp(16px,1.3vw,28px)]">
             <div className="space-y-4">
               {messages.map((message, index) => (
                 <div
@@ -465,7 +543,7 @@ export default function Page() {
             </div>
           </div>
 
-          <footer className="border-t border-[rgb(var(--border))] p-4">
+          <footer className="border-t border-[rgb(var(--border))] p-[clamp(12px,1vw,20px)]">
             <div className="rounded-[1.75rem] border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
               <textarea
                 value={input}

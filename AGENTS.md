@@ -97,6 +97,10 @@ Requirements:
 - No generic boilerplate look.
 - No default AI-app sameness.
 - Works well on desktop and tablet-sized windows.
+- Use a full-screen shell with a left sidebar that starts at the very edge and a main chat area that flexes to fill the remaining width.
+- On larger screens, the layout should scale up naturally instead of staying boxed in a narrow centered container.
+- On very large displays, typography, spacing, cards, and chat bubbles should feel proportionally larger and more spacious.
+- On viewports narrower than 980px, the sidebar should collapse into a drawer/overlay pattern so the chat area stays usable.
 - Sidebar for chats, memory, and settings.
 - Chat area must feel fast and uncluttered.
 - User memory upload should be easy to find and easy to understand.
@@ -108,7 +112,7 @@ Requirements:
 
 Design direction:
 - Inspired by premium AI apps such as ChatGPT and You.com, but not copied exactly.
-- Left sidebar for navigation and history, centered main chat panel, and a calm top status bar.
+- Left sidebar for navigation and history, main chat panel stretching across the remaining viewport, and a calm top status bar.
 - Rounded cards, thin borders, subtle gradients, and soft shadows.
 - Dark mode should feel rich and cinematic.
 - Light mode should feel clean, airy, and equally polished.
@@ -200,6 +204,8 @@ We will implement the project in stages.
 - [x] Add dark and light mode theme toggle.
 - [ ] Add memory management UI.
 - [ ] Add startup and tray behavior if desired.
+- [x] Add full-screen responsive shell that fills the viewport and scales on larger displays.
+- [x] Add compact sidebar breakpoint behavior for narrower screens.
 
 ## Working Rules
 
@@ -218,6 +224,8 @@ Repo status:
 - Initial Python backend and Next.js frontend scaffold are in place.
 - Live streamed chat responses are now implemented.
 - Dark and light mode theming is now implemented.
+- Full-screen responsive layout scaling is now implemented.
+- Compact sidebar drawer behavior on small screens is now implemented.
 - This file now defines the working direction.
 
 Immediate next step:
