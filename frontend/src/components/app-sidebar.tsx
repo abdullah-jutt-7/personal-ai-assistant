@@ -1,5 +1,5 @@
 import type { ChangeEvent } from "react";
-import { FilePenLine, FileText, LibraryBig, Plus, Settings2, Sparkles, Trash2, X } from "lucide-react";
+import { FilePenLine, FileText, LibraryBig, Plus, Search, Settings2, Sparkles, Trash2, X } from "lucide-react";
 
 import type { ConversationSummary, DatasetSummary, InstalledModel, MemorySummary } from "@/lib/chat-types";
 
@@ -8,6 +8,7 @@ type SidebarProps = {
   datasets: DatasetSummary[];
   memories: MemorySummary[];
   activeConversationId: number | null;
+  conversationSearch: string;
   memoryFileName: string | null;
   datasetFileName: string | null;
   isCompactViewport: boolean;
@@ -15,6 +16,7 @@ type SidebarProps = {
   onClose: () => void;
   onNewConversation: () => void;
   onSelectConversation: (conversationId: number) => void;
+  onConversationSearchChange: (value: string) => void;
   onRenameConversation: (conversationId: number, currentTitle: string) => void;
   onDeleteConversation: (conversationId: number) => void;
   onMemoryUpload: (event: ChangeEvent<HTMLInputElement>) => void;
@@ -36,6 +38,7 @@ export function AppSidebar({
   datasets,
   memories,
   activeConversationId,
+  conversationSearch,
   memoryFileName,
   datasetFileName,
   isCompactViewport,
@@ -43,6 +46,7 @@ export function AppSidebar({
   onClose,
   onNewConversation,
   onSelectConversation,
+  onConversationSearchChange,
   onRenameConversation,
   onDeleteConversation,
   onMemoryUpload,
@@ -61,20 +65,22 @@ export function AppSidebar({
   return (
     <aside
       className={[
-        "app-panel shrink-0 rounded-[2rem] p-[clamp(14px,1vw,20px)] transition-transform duration-200 ease-out",
+        "app-panel shrink-0 rounded-[2rem] p-[clamp(12px,0.85vw,16px)] transition-transform duration-200 ease-out",
         isCompactViewport ? "fixed inset-y-[clamp(8px,0.75vw,20px)] left-[clamp(8px,0.75vw,20px)] z-40" : "relative",
         isCompactViewport && !sidebarOpen ? "-translate-x-[110%]" : "translate-x-0",
       ].join(" ")}
       style={{ width: "clamp(300px, 21vw, 390px)" }}
     >
-      <div className="mb-6 flex items-start justify-between gap-3">
-        <div className="flex flex-1 items-center gap-3 rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,rgb(var(--accent)),rgb(var(--accent-2)))] text-white">
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="flex flex-1 items-center gap-3 rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,rgb(var(--accent)),rgb(var(--accent-2)))] text-white">
             <Sparkles className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-sm font-medium text-[rgb(var(--muted))]">PersonalAIAsisstant</p>
-            <h1 className="text-lg font-semibold">IntelliText</h1>
+            <p className="text-xs font-medium uppercase tracking-[0.2em] text-[rgb(var(--muted))]">
+              PersonalAIAsisstant
+            </p>
+            <h1 className="text-lg font-semibold leading-tight">IntelliText</h1>
           </div>
         </div>
         {isCompactViewport && (
@@ -91,24 +97,24 @@ export function AppSidebar({
 
       <button
         onClick={onNewConversation}
-        className="mb-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--text))] px-4 py-3 text-sm font-semibold text-[rgb(var(--bg))] transition hover:scale-[1.01]"
+        className="mb-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--text))] px-4 py-2.5 text-sm font-semibold text-[rgb(var(--bg))] transition hover:scale-[1.01]"
       >
         <Plus className="h-4 w-4" />
         New conversation
       </button>
 
-      <div className="mb-4 space-y-3 rounded-3xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-4">
+      <div className="mb-3 space-y-3 rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
         <div className="flex items-center gap-2 text-sm font-semibold">
           <Settings2 className="h-4 w-4" />
           App settings
         </div>
-        <label className="block space-y-2 text-xs uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
+        <label className="block space-y-2 text-xs font-medium text-[rgb(var(--muted))]">
           Active model
           <input
             value={modelDraft}
             onChange={(event) => onModelDraftChange(event.target.value)}
             list="installed-models"
-            className="w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel))] px-3 py-2 text-sm text-[rgb(var(--text))] outline-none"
+            className="w-full rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--panel))] px-3 py-2 text-sm text-[rgb(var(--text))] outline-none"
           />
           <datalist id="installed-models">
             {installedModels.map((model) => (
@@ -136,13 +142,22 @@ export function AppSidebar({
       </div>
 
       <div className="space-y-2">
-        <div className="flex items-center gap-2 px-2 text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
+        <div className="flex items-center gap-2 px-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
           <LibraryBig className="h-4 w-4" />
           Chats
         </div>
+        <label className="flex items-center gap-2 rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] px-3 py-2 text-sm text-[rgb(var(--muted))]">
+          <Search className="h-4 w-4" />
+          <input
+            value={conversationSearch}
+            onChange={(event) => onConversationSearchChange(event.target.value)}
+            placeholder="Search chats"
+            className="w-full bg-transparent text-sm text-[rgb(var(--text))] outline-none placeholder:text-[rgb(var(--muted))]"
+          />
+        </label>
         <div className="max-h-[340px] space-y-2 overflow-auto pr-1">
           {conversations.length === 0 && (
-            <div className="rounded-2xl border border-dashed border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-4 text-sm text-[rgb(var(--muted))]">
+            <div className="rounded-2xl border border-dashed border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3 text-sm text-[rgb(var(--muted))]">
               No conversations yet.
             </div>
           )}
@@ -150,7 +165,7 @@ export function AppSidebar({
             <div
               key={conversation.id}
               className={[
-                "rounded-2xl border px-4 py-3 transition",
+                "rounded-2xl border px-3.5 py-3 transition",
                 activeConversationId === conversation.id
                   ? "border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))]"
                   : "border-[rgb(var(--border))] bg-[rgb(var(--panel))] hover:bg-[rgb(var(--panel-soft))]",
@@ -166,7 +181,7 @@ export function AppSidebar({
                   Updated {new Date(conversation.updated_at).toLocaleString()}
                 </p>
               </button>
-              <div className="mt-3 flex items-center justify-end gap-2">
+              <div className="mt-2 flex items-center justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => onRenameConversation(conversation.id, conversation.title)}
@@ -189,17 +204,17 @@ export function AppSidebar({
         </div>
       </div>
 
-      <div className="mt-6 space-y-3 rounded-3xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-4">
+      <div className="mt-4 space-y-3 rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
         <div className="flex items-center gap-2 text-sm font-semibold">
           <FileText className="h-4 w-4" />
           Memory upload
         </div>
-        <label className="flex cursor-pointer items-center justify-center rounded-2xl border border-dashed border-[rgb(var(--border))] bg-transparent px-4 py-4 text-sm text-[rgb(var(--muted))] transition hover:bg-[rgb(var(--panel))]">
+        <label className="flex cursor-pointer items-center justify-center rounded-2xl border border-dashed border-[rgb(var(--border))] bg-transparent px-4 py-3 text-sm text-[rgb(var(--muted))] transition hover:bg-[rgb(var(--panel))]">
           <input type="file" accept=".txt" className="hidden" onChange={onMemoryUpload} />
           Upload .txt memory file
         </label>
         <p className="text-xs leading-5 text-[rgb(var(--muted))]">
-          Files will become local assistant memory in the next backend stage.
+          Saved locally and injected into prompts when relevant.
         </p>
         {memoryFileName && (
           <p
@@ -252,17 +267,17 @@ export function AppSidebar({
         )}
       </div>
 
-      <div className="mt-4 space-y-3 rounded-3xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-4">
+      <div className="mt-3 space-y-3 rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
         <div className="flex items-center gap-2 text-sm font-semibold">
           <LibraryBig className="h-4 w-4" />
           Dataset import
         </div>
-        <label className="flex cursor-pointer items-center justify-center rounded-2xl border border-dashed border-[rgb(var(--border))] bg-transparent px-4 py-4 text-sm text-[rgb(var(--muted))] transition hover:bg-[rgb(var(--panel))]">
+        <label className="flex cursor-pointer items-center justify-center rounded-2xl border border-dashed border-[rgb(var(--border))] bg-transparent px-4 py-3 text-sm text-[rgb(var(--muted))] transition hover:bg-[rgb(var(--panel))]">
           <input type="file" accept=".txt,.csv,.json,.jsonl" className="hidden" onChange={onDatasetUpload} />
           Upload dataset file
         </label>
         <p className="text-xs leading-5 text-[rgb(var(--muted))]">
-          Datasets are stored locally and tracked separately from chat memory.
+          Stored locally and tracked separately from chat memory.
         </p>
         {datasetFileName && (
           <p
@@ -274,7 +289,7 @@ export function AppSidebar({
         )}
         {datasets.length > 0 && (
           <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
               Local datasets
             </p>
             <div className="max-h-[180px] space-y-2 overflow-auto pr-1">

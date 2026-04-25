@@ -122,6 +122,7 @@ Requirements:
 - Support both dark mode and light mode from the start.
 - Include a theme toggle that remembers the user's preference locally.
 - Stream assistant responses live into the chat bubble instead of waiting for the full completion.
+- The current design priority is a minimal, uncluttered, premium interface; reduce card clutter and dense UI chrome where possible.
 
 Design direction:
 - Inspired by premium AI apps such as ChatGPT and You.com, but not copied exactly.
@@ -221,6 +222,7 @@ We will implement the project in stages.
 - [x] Add dark and light mode theme toggle.
 - [x] Add memory management UI.
 - [x] Add conversation rename and delete controls.
+- [x] Add sidebar conversation search.
 - [ ] Add startup and tray behavior if desired.
 - [x] Add full-screen responsive shell that fills the viewport and scales on larger displays.
 - [x] Add compact sidebar breakpoint behavior for narrower screens.
@@ -276,6 +278,8 @@ Repo status:
 - The UI theme can now be loaded from and saved to local settings.
 - The app should still boot its UI even if the Ollama model inventory endpoint is temporarily unavailable.
 - Chat conversations can now be renamed and deleted from the sidebar.
+- The sidebar can now filter conversations by title.
+- Keep iterating toward a cleaner, less cluttered visual language that feels closer to the minimal AI-app examples.
 - This file now defines the working direction.
 
 Immediate next step:

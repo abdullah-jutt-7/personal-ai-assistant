@@ -50,6 +50,7 @@ export default function Page() {
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [status, setStatus] = useState("Checking local backend...");
+  const [conversationSearch, setConversationSearch] = useState("");
   const [memoryFileName, setMemoryFileName] = useState<string | null>(null);
   const [datasetFileName, setDatasetFileName] = useState<string | null>(null);
   const [memorySources, setMemorySources] = useState<MemorySummary[]>([]);
@@ -71,6 +72,11 @@ export default function Page() {
   const [datasetDraftName, setDatasetDraftName] = useState("");
   const [datasetDraftDescription, setDatasetDraftDescription] = useState("");
   const [datasetEditStatus, setDatasetEditStatus] = useState("");
+  const filteredConversations = useMemo(() => {
+    const query = conversationSearch.trim().toLowerCase();
+    if (!query) return conversations;
+    return conversations.filter((conversation) => conversation.title.toLowerCase().includes(query));
+  }, [conversationSearch, conversations]);
 
   useEffect(() => {
     const storedTheme = window.localStorage.getItem(themeStorageKey) as Theme | null;
@@ -174,6 +180,7 @@ export default function Page() {
         setTheme(themeData.theme);
       }
       setConversations(convData);
+      setConversationSearch("");
       setDatasets(datasetData);
       setMemorySources(memoryData);
       setInstalledModels(modelsData);
@@ -195,6 +202,7 @@ export default function Page() {
     } catch {
       setStatus("Backend not connected yet");
       setConversations([]);
+      setConversationSearch("");
       setInstalledModels([]);
     }
   }
@@ -256,15 +264,19 @@ export default function Page() {
       }
 
       const data = (await res.json()) as ConversationDeleteResult;
-      setConversations((current) => current.filter((item) => item.id !== data.conversation_id));
+      let fallbackConversationId: number | null = null;
+      setConversations((current) => {
+        const next = current.filter((item) => item.id !== data.conversation_id);
+        fallbackConversationId = next[0]?.id ?? null;
+        return next;
+      });
 
       if (activeConversationId === data.conversation_id) {
         setActiveConversationId(null);
         setMessages(starterMessages);
 
-        const nextConversation = conversations.find((item) => item.id !== data.conversation_id);
-        if (nextConversation) {
-          await loadConversation(nextConversation.id);
+        if (fallbackConversationId !== null) {
+          await loadConversation(fallbackConversationId);
         }
       }
     } catch (error) {
@@ -742,10 +754,11 @@ export default function Page() {
         style={{ padding: "clamp(8px, 0.75vw, 20px)" }}
       >
         <AppSidebar
-          conversations={conversations}
+          conversations={filteredConversations}
           datasets={datasets}
           memories={memorySources}
           activeConversationId={activeConversationId}
+          conversationSearch={conversationSearch}
           memoryFileName={memoryFileName}
           datasetFileName={datasetFileName}
           isCompactViewport={isCompactViewport}
@@ -753,6 +766,7 @@ export default function Page() {
           onClose={() => setSidebarOpen(false)}
           onNewConversation={startNewConversation}
           onSelectConversation={loadConversation}
+          onConversationSearchChange={setConversationSearch}
           onRenameConversation={renameConversation}
           onDeleteConversation={deleteConversation}
           onMemoryUpload={onMemoryUpload}
