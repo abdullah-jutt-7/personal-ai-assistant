@@ -12,6 +12,7 @@ import type {
   ConversationSummary,
   DatasetDetail,
   DatasetSummary,
+  InstalledModel,
   ModelSettings,
   DatasetUpdateResult,
   MemoryDetail,
@@ -59,6 +60,7 @@ export default function Page() {
   const [activeModel, setActiveModel] = useState("qwen3:4b");
   const [modelDraft, setModelDraft] = useState("qwen3:4b");
   const [modelEditStatus, setModelEditStatus] = useState("");
+  const [installedModels, setInstalledModels] = useState<InstalledModel[]>([]);
   const [isCompactViewport, setIsCompactViewport] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
@@ -136,11 +138,12 @@ export default function Page() {
 
   async function bootstrap() {
     try {
-      const [healthRes, convRes, datasetRes, memoryRes] = await Promise.all([
+      const [healthRes, convRes, datasetRes, memoryRes, modelsRes] = await Promise.all([
         fetch(`${apiBaseUrl}/api/health`),
         fetch(`${apiBaseUrl}/api/conversations`),
         fetch(`${apiBaseUrl}/api/datasets`),
         fetch(`${apiBaseUrl}/api/memory`),
+        fetch(`${apiBaseUrl}/api/models`),
       ]);
       const themeRes = await fetch(`${apiBaseUrl}/api/settings/theme`);
       const modelRes = await fetch(`${apiBaseUrl}/api/settings/model`);
@@ -149,6 +152,7 @@ export default function Page() {
       const convData = (await convRes.json()) as ConversationSummary[];
       const datasetData = (await datasetRes.json()) as DatasetSummary[];
       const memoryData = (await memoryRes.json()) as MemorySummary[];
+      const modelsData = (await modelsRes.json()) as InstalledModel[];
       const themeData = (await themeRes.json()) as ThemeSettings;
       const modelData = (await modelRes.json()) as ModelSettings;
 
@@ -162,6 +166,7 @@ export default function Page() {
       setConversations(convData);
       setDatasets(datasetData);
       setMemorySources(memoryData);
+      setInstalledModels(modelsData);
       setSelectedMemory(null);
       setSelectedDataset(null);
       setMemoryDraftName("");
@@ -623,6 +628,17 @@ export default function Page() {
     }
   }
 
+  async function refreshInstalledModels() {
+    try {
+      const res = await fetch(`${apiBaseUrl}/api/models`);
+      if (!res.ok) return;
+      const data = (await res.json()) as InstalledModel[];
+      setInstalledModels(data);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   const accentText = useMemo(
     () => (isSending ? "IntelliText is thinking..." : status),
     [isSending, status],
@@ -680,8 +696,10 @@ export default function Page() {
           onSelectDataset={openDatasetDetails}
           modelDraft={modelDraft}
           modelEditStatus={modelEditStatus}
+          installedModels={installedModels}
           onModelDraftChange={setModelDraft}
           onSaveModel={saveModelSettings}
+          onRefreshModels={refreshInstalledModels}
         />
 
         <section className="app-panel flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[2rem]">

@@ -36,6 +36,7 @@ from backend.app.schemas.datasets import (
 )
 from backend.app.schemas.settings import ModelSettingsResponse, ModelSettingsUpdateRequest
 from backend.app.schemas.settings import ThemeSettingsResponse, ThemeSettingsUpdateRequest
+from backend.app.schemas.models import InstalledModelSummary
 from backend.app.schemas.memory import (
     MemoryChunkSummary,
     MemoryDeleteResponse,
@@ -48,7 +49,7 @@ from backend.app.services.dataset_context import build_dataset_context
 from backend.app.services.app_settings import get_active_ollama_model, set_active_ollama_model
 from backend.app.services.dataset_store import delete_dataset_folder, hash_content, save_dataset_file
 from backend.app.services.memory_context import build_memory_context
-from backend.app.services.ollama_client import generate_reply, stream_reply
+from backend.app.services.ollama_client import generate_reply, list_installed_models, stream_reply
 from backend.app.services.user_settings import get_theme_setting, set_theme_setting
 
 
@@ -78,6 +79,20 @@ def update_model_settings(
 ):
     model_name = set_active_ollama_model(db, payload.ollama_model)
     return {"ollama_model": model_name}
+
+
+@router.get("/models", response_model=list[InstalledModelSummary])
+async def list_models():
+    models = await list_installed_models()
+    return [
+        InstalledModelSummary(
+            name=str(model.get("name") or ""),
+            modified_at=str(model["modified_at"]) if model.get("modified_at") else None,
+            size=int(model["size"]) if model.get("size") is not None else None,
+        )
+        for model in models
+        if model.get("name")
+    ]
 
 
 @router.get("/settings/theme", response_model=ThemeSettingsResponse)

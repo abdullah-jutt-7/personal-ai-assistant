@@ -1,7 +1,7 @@
 import type { ChangeEvent } from "react";
 import { FileText, LibraryBig, Plus, Settings2, Sparkles, Trash2, X } from "lucide-react";
 
-import type { ConversationSummary, DatasetSummary, MemorySummary } from "@/lib/chat-types";
+import type { ConversationSummary, DatasetSummary, InstalledModel, MemorySummary } from "@/lib/chat-types";
 
 type SidebarProps = {
   conversations: ConversationSummary[];
@@ -23,8 +23,10 @@ type SidebarProps = {
   onSelectMemory: (memoryId: number) => void;
   modelDraft: string;
   modelEditStatus: string;
+  installedModels: InstalledModel[];
   onModelDraftChange: (value: string) => void;
   onSaveModel: () => void;
+  onRefreshModels: () => void;
 };
 
 export function AppSidebar({
@@ -47,11 +49,11 @@ export function AppSidebar({
   onSelectMemory,
   modelDraft,
   modelEditStatus,
+  installedModels,
   onModelDraftChange,
   onSaveModel,
+  onRefreshModels,
 }: SidebarProps) {
-  const quickModels = ["qwen3:4b", "qwen3.5:2b", "llama3.2:3b", "qwen3:8b", "phi4"];
-
   return (
     <aside
       className={[
@@ -101,26 +103,15 @@ export function AppSidebar({
           <input
             value={modelDraft}
             onChange={(event) => onModelDraftChange(event.target.value)}
+            list="installed-models"
             className="w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel))] px-3 py-2 text-sm text-[rgb(var(--text))] outline-none"
           />
+          <datalist id="installed-models">
+            {installedModels.map((model) => (
+              <option key={model.name} value={model.name} />
+            ))}
+          </datalist>
         </label>
-        <div className="flex flex-wrap gap-2">
-          {quickModels.map((model) => (
-            <button
-              key={model}
-              type="button"
-              onClick={() => onModelDraftChange(model)}
-              className={[
-                "rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.22em] transition",
-                modelDraft === model
-                  ? "border-[rgb(var(--text))] bg-[rgb(var(--text))] text-[rgb(var(--bg))]"
-                  : "border-[rgb(var(--border))] bg-[rgb(var(--panel))] text-[rgb(var(--muted))] hover:text-[rgb(var(--text))]",
-              ].join(" ")}
-            >
-              {model}
-            </button>
-          ))}
-        </div>
         <div className="flex items-center justify-between gap-3">
           <button
             type="button"
@@ -129,8 +120,15 @@ export function AppSidebar({
           >
             Save model
           </button>
-          <span className="text-xs text-[rgb(var(--muted))]">{modelEditStatus}</span>
+          <button
+            type="button"
+            onClick={onRefreshModels}
+            className="rounded-full border border-[rgb(var(--border))] bg-[rgb(var(--panel))] px-4 py-2 text-xs font-medium text-[rgb(var(--text))]"
+          >
+            Refresh list
+          </button>
         </div>
+        <span className="text-xs text-[rgb(var(--muted))]">{modelEditStatus}</span>
       </div>
 
       <div className="space-y-2">

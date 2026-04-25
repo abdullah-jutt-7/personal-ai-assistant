@@ -104,3 +104,28 @@ async def stream_reply(
 
                 if data.get("done"):
                     yield {"type": "done", "content": content}
+
+
+async def list_installed_models() -> list[dict[str, object]]:
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        response = await client.get(f"{settings.ollama_base_url}/api/tags")
+        response.raise_for_status()
+        data = response.json()
+
+    models = data.get("models") if isinstance(data, dict) else []
+    if not isinstance(models, list):
+        return []
+
+    result: list[dict[str, object]] = []
+    for model in models:
+      if not isinstance(model, dict):
+          continue
+      result.append(
+          {
+              "name": model.get("name") or "",
+              "modified_at": model.get("modified_at"),
+              "size": model.get("size"),
+          }
+      )
+
+    return result

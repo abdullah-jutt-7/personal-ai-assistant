@@ -20,6 +20,12 @@ export type ThemeSettings = {
   theme: Theme;
 };
 
+export type InstalledModel = {
+  name: string;
+  modified_at: string | null;
+  size: number | null;
+};
+
 export type DatasetSummary = {
   id: number;
   name: string;
