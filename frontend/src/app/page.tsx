@@ -770,7 +770,7 @@ export default function Page() {
           onSelectDataset={openDatasetDetails}
         />
 
-        <section className="app-panel flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[2rem]">
+        <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
           <ChatHeader
             accentText={accentText}
             activeModel={activeModel}
@@ -783,27 +783,29 @@ export default function Page() {
             onToggleTheme={handleToggleTheme}
           />
 
-          <ThinkingPanel thinkingText={thinkingText} />
+          <div className="mx-auto flex min-h-0 w-full max-w-[800px] flex-1 flex-col">
+            <ThinkingPanel thinkingText={thinkingText} />
 
-          <div
-            ref={chatScrollRef}
-            className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-[clamp(16px,1.3vw,28px)] py-[clamp(16px,1.3vw,28px)]"
-          >
-            <MessageList messages={messages} theme={theme} />
+            <div
+              ref={chatScrollRef}
+              className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-[clamp(16px,1.3vw,28px)] py-[clamp(18px,1.8vw,34px)]"
+            >
+              <MessageList messages={messages} theme={theme} />
+            </div>
+
+            <Composer
+              activeModel={activeModel}
+              input={input}
+              isSending={isSending}
+              onChange={setInput}
+              onSend={sendMessage}
+            />
           </div>
-
-          <Composer
-            activeModel={activeModel}
-            input={input}
-            isSending={isSending}
-            onChange={setInput}
-            onSend={sendMessage}
-          />
         </section>
 
         {(selectedDataset || selectedMemory) && (
           <aside className="app-panel hidden min-h-0 w-[clamp(280px,20vw,360px)] flex-col overflow-hidden rounded-[2rem] xl:flex">
-            <div className="border-b border-[rgb(var(--border))] px-[clamp(16px,1.1vw,24px)] py-[clamp(14px,1vw,18px)]">
+            <div className="border-b border-[rgb(var(--border)/0.1)] px-[clamp(16px,1.1vw,24px)] py-[clamp(14px,1vw,18px)]">
               <p className="text-xs uppercase tracking-[0.3em] text-[rgb(var(--muted))]">
                 {selectedDataset ? "Dataset details" : "Memory details"}
               </p>
@@ -821,15 +823,15 @@ export default function Page() {
                 {selectedDataset ? (
                   <>
                     <div className="grid grid-cols-3 gap-3">
-                      <div className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
+                      <div className="rounded-2xl border border-[rgb(var(--border)/0.09)] bg-[rgb(var(--panel-soft)/0.72)] p-3">
                         <p className="text-[10px] uppercase tracking-[0.24em] text-[rgb(var(--muted))]">Sources</p>
                         <p className="mt-1 text-lg font-semibold">{selectedDataset.source_count}</p>
                       </div>
-                      <div className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
+                      <div className="rounded-2xl border border-[rgb(var(--border)/0.09)] bg-[rgb(var(--panel-soft)/0.72)] p-3">
                         <p className="text-[10px] uppercase tracking-[0.24em] text-[rgb(var(--muted))]">Versions</p>
                         <p className="mt-1 text-lg font-semibold">{selectedDataset.version_count}</p>
                       </div>
-                      <div className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
+                      <div className="rounded-2xl border border-[rgb(var(--border)/0.09)] bg-[rgb(var(--panel-soft)/0.72)] p-3">
                         <p className="text-[10px] uppercase tracking-[0.24em] text-[rgb(var(--muted))]">Chunks</p>
                         <p className="mt-1 text-lg font-semibold">{selectedDataset.chunk_count}</p>
                       </div>
@@ -844,7 +846,7 @@ export default function Page() {
                         <input
                           value={datasetDraftName}
                           onChange={(event) => setDatasetDraftName(event.target.value)}
-                          className="w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] px-3 py-2 text-sm text-[rgb(var(--text))] outline-none"
+                          className="w-full rounded-2xl border border-[rgb(var(--border)/0.09)] bg-[rgb(var(--panel-soft)/0.72)] px-3 py-2 text-sm text-[rgb(var(--text))] outline-none"
                         />
                       </label>
                       <label className="block space-y-2 text-xs uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
@@ -852,7 +854,7 @@ export default function Page() {
                         <textarea
                           value={datasetDraftDescription}
                           onChange={(event) => setDatasetDraftDescription(event.target.value)}
-                          className="min-h-[120px] w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] px-3 py-2 text-sm leading-6 text-[rgb(var(--text))] outline-none"
+                          className="min-h-[120px] w-full rounded-2xl border border-[rgb(var(--border)/0.09)] bg-[rgb(var(--panel-soft)/0.72)] px-3 py-2 text-sm leading-6 text-[rgb(var(--text))] outline-none"
                         />
                       </label>
                       <div className="flex items-center justify-between gap-3">
@@ -872,7 +874,7 @@ export default function Page() {
                         Sources
                       </p>
                       {selectedDataset.sources.map((source) => (
-                        <div key={source.id} className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
+                        <div key={source.id} className="rounded-2xl border border-[rgb(var(--border)/0.09)] bg-[rgb(var(--panel-soft)/0.72)] p-3">
                           <p className="font-medium">{source.file_name}</p>
                           <p className="mt-1 break-all text-xs text-[rgb(var(--muted))]">{source.file_path}</p>
                         </div>
@@ -884,7 +886,7 @@ export default function Page() {
                         Versions
                       </p>
                       {selectedDataset.versions.map((version) => (
-                        <div key={version.id} className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
+                        <div key={version.id} className="rounded-2xl border border-[rgb(var(--border)/0.09)] bg-[rgb(var(--panel-soft)/0.72)] p-3">
                           <p className="font-medium">{version.version_label}</p>
                           <p className="mt-1 text-xs text-[rgb(var(--muted))]">{version.notes || "No notes."}</p>
                         </div>
@@ -897,7 +899,7 @@ export default function Page() {
                       </p>
                       <div className="space-y-2">
                         {selectedDataset.chunks.slice(0, 5).map((chunk) => (
-                          <div key={chunk.id} className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
+                          <div key={chunk.id} className="rounded-2xl border border-[rgb(var(--border)/0.09)] bg-[rgb(var(--panel-soft)/0.72)] p-3">
                             <p className="mb-2 text-[10px] uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
                               Chunk {chunk.chunk_index + 1}
                             </p>
@@ -912,11 +914,11 @@ export default function Page() {
                 ) : (
                   <>
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
+                      <div className="rounded-2xl border border-[rgb(var(--border)/0.09)] bg-[rgb(var(--panel-soft)/0.72)] p-3">
                         <p className="text-[10px] uppercase tracking-[0.24em] text-[rgb(var(--muted))]">Chunks</p>
                         <p className="mt-1 text-lg font-semibold">{selectedMemory?.chunk_count}</p>
                       </div>
-                      <div className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
+                      <div className="rounded-2xl border border-[rgb(var(--border)/0.09)] bg-[rgb(var(--panel-soft)/0.72)] p-3">
                         <p className="text-[10px] uppercase tracking-[0.24em] text-[rgb(var(--muted))]">Type</p>
                         <p className="mt-1 text-lg font-semibold">{selectedMemory?.source_type}</p>
                       </div>
@@ -926,7 +928,7 @@ export default function Page() {
                       <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
                         Original File
                       </p>
-                      <div className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
+                      <div className="rounded-2xl border border-[rgb(var(--border)/0.09)] bg-[rgb(var(--panel-soft)/0.72)] p-3">
                         <p className="font-medium">{selectedMemory?.original_filename || "Unknown file"}</p>
                         <p className="mt-1 text-xs text-[rgb(var(--muted))]">{selectedMemory?.content_text.length || 0} characters stored</p>
                       </div>
@@ -941,7 +943,7 @@ export default function Page() {
                         <input
                           value={memoryDraftName}
                           onChange={(event) => setMemoryDraftName(event.target.value)}
-                          className="w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] px-3 py-2 text-sm text-[rgb(var(--text))] outline-none"
+                          className="w-full rounded-2xl border border-[rgb(var(--border)/0.09)] bg-[rgb(var(--panel-soft)/0.72)] px-3 py-2 text-sm text-[rgb(var(--text))] outline-none"
                         />
                       </label>
                       <label className="block space-y-2 text-xs uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
@@ -949,7 +951,7 @@ export default function Page() {
                         <textarea
                           value={memoryDraftText}
                           onChange={(event) => setMemoryDraftText(event.target.value)}
-                          className="min-h-[180px] w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] px-3 py-2 text-sm leading-6 text-[rgb(var(--text))] outline-none"
+                          className="min-h-[180px] w-full rounded-2xl border border-[rgb(var(--border)/0.09)] bg-[rgb(var(--panel-soft)/0.72)] px-3 py-2 text-sm leading-6 text-[rgb(var(--text))] outline-none"
                         />
                       </label>
                       <div className="flex items-center justify-between gap-3">
@@ -970,7 +972,7 @@ export default function Page() {
                       </p>
                       <div className="space-y-2">
                         {selectedMemory?.chunks.map((chunk) => (
-                          <div key={chunk.id} className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
+                          <div key={chunk.id} className="rounded-2xl border border-[rgb(var(--border)/0.09)] bg-[rgb(var(--panel-soft)/0.72)] p-3">
                             <p className="mb-2 text-[10px] uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
                               Chunk {chunk.chunk_index + 1}
                             </p>

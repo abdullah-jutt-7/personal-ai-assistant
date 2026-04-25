@@ -64,8 +64,8 @@ function CodeBlock({ className, children, theme }: CodeBlockProps) {
   };
 
   return (
-    <div className="my-5 overflow-hidden rounded-[1.5rem] border border-[rgb(var(--border))] bg-[rgb(var(--panel))]">
-      <div className="flex items-center justify-between gap-3 border-b border-[rgb(var(--border))] px-4 py-3 text-xs text-[rgb(var(--muted))]">
+    <div className="my-5 overflow-hidden rounded-[1.5rem] border border-[rgb(var(--border)/0.09)] bg-[rgb(var(--panel))]">
+      <div className="flex items-center justify-between gap-3 border-b border-[rgb(var(--border)/0.08)] px-4 py-3 text-xs text-[rgb(var(--muted))]">
         <div className="flex items-center gap-2 font-medium text-[rgb(var(--text))]">
           <SquareCode className="h-4 w-4" />
           <span>{label}</span>
@@ -73,7 +73,7 @@ function CodeBlock({ className, children, theme }: CodeBlockProps) {
         <button
           type="button"
           onClick={handleCopy}
-          className="inline-flex items-center gap-2 rounded-full border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] px-3 py-1.5 text-xs font-medium text-[rgb(var(--text))] transition hover:scale-[1.01]"
+          className="inline-flex items-center gap-2 rounded-full border border-[rgb(var(--border)/0.09)] bg-[rgb(var(--panel-soft))] px-3 py-1.5 text-xs font-medium text-[rgb(var(--text))] transition hover:scale-[1.01]"
           aria-label="Copy code block"
         >
           {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
@@ -154,11 +154,11 @@ export function MarkdownContent({ content, theme }: MarkdownContentProps) {
             );
           },
           hr() {
-            return <hr className="my-6 border-[rgb(var(--border))]" />;
+            return <hr className="my-6 border-[rgb(var(--border)/0.08)]" />;
           },
           table({ children }) {
             return (
-              <div className="my-5 overflow-x-auto rounded-[1.25rem] border border-[rgb(var(--border))]">
+              <div className="my-5 overflow-x-auto rounded-[1.25rem] border border-[rgb(var(--border)/0.09)]">
                 <table className="min-w-full border-collapse text-left text-sm">{children}</table>
               </div>
             );
@@ -168,13 +168,13 @@ export function MarkdownContent({ content, theme }: MarkdownContentProps) {
           },
           th({ children }) {
             return (
-              <th className="border-b border-[rgb(var(--border))] px-4 py-3 font-semibold">
+              <th className="border-b border-[rgb(var(--border)/0.08)] px-4 py-3 font-semibold">
                 {children}
               </th>
             );
           },
           td({ children }) {
-            return <td className="border-b border-[rgb(var(--border))] px-4 py-3">{children}</td>;
+            return <td className="border-b border-[rgb(var(--border)/0.08)] px-4 py-3">{children}</td>;
           },
           code({
             inline,
@@ -187,7 +187,7 @@ export function MarkdownContent({ content, theme }: MarkdownContentProps) {
           }) {
             if (inline) {
               return (
-                <code className="rounded-md border border-[rgb(var(--border))] bg-[rgb(var(--panel))] px-1.5 py-0.5 font-mono text-[0.92em] text-[rgb(var(--text))]">
+                <code className="rounded-md border border-[rgb(var(--border)/0.09)] bg-[rgb(var(--panel-soft))] px-1.5 py-0.5 font-mono text-[0.92em] text-[rgb(var(--text))]">
                   {children}
                 </code>
               );

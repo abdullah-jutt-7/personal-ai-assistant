@@ -132,6 +132,9 @@ Design direction:
 - Dark mode should feel rich and cinematic.
 - Light mode should feel clean, airy, and equally polished.
 - A real product feel, not a demo shell.
+- Use the supplied Stockverse reference as the practical styling benchmark when refining spacing, chrome, and border weight.
+- Prefer soft surfaces and quiet separators over repeatedly outlined cards.
+- Match the reference layout behavior closely: full-height sidebar at the left edge, date-grouped chats in the sidebar, a centered chat canvas, and lightweight assistant markdown rendering.
 
 ## Data Model
 
@@ -286,3 +289,4 @@ Repo status:
 
 Immediate next step:
 - Build the first end-to-end experience for memory injection and dataset management on top of the scaffold.
+- Continue the reference-driven UI pass so the sidebar, centered chat canvas, and markdown rendering match the supplied Stockverse layout more closely.
