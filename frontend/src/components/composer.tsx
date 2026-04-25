@@ -38,8 +38,8 @@ export function Composer({ activeModel, input, isSending, onChange, onSend }: Co
   };
 
   return (
-    <footer className="mx-auto w-full max-w-[800px] px-[clamp(16px,1.3vw,28px)] pb-[clamp(14px,1.25vw,24px)]">
-      <div className="rounded-[1.75rem] bg-[rgb(var(--panel)/0.94)] p-2.5 shadow-[0_8px_22px_rgba(0,0,0,0.04)] ring-1 ring-[rgb(var(--border)/0.06)] backdrop-blur-xl">
+    <footer className="mx-auto w-full max-w-[760px] px-[clamp(16px,1.2vw,24px)] pb-[clamp(10px,0.95vw,16px)]">
+      <div className="rounded-[1.35rem] bg-[rgb(var(--panel)/0.92)] p-2 shadow-[0_6px_16px_rgba(0,0,0,0.03)] ring-1 ring-[rgb(var(--border)/0.05)] backdrop-blur-xl">
         <textarea
           ref={textareaRef}
           value={input}
@@ -51,7 +51,7 @@ export function Composer({ activeModel, input, isSending, onChange, onSend }: Co
           placeholder="Ask IntelliText anything..."
           className="max-h-[220px] w-full resize-none bg-transparent px-1 py-1.5 text-[15px] leading-7 text-[rgb(var(--text))] outline-none placeholder:text-[rgb(var(--muted))]"
         />
-        <div className="mt-2.5 flex items-center justify-between gap-3">
+        <div className="mt-1.5 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-xs text-[rgb(var(--muted))]">
             <Bot className="h-4 w-4" />
             Ollama-powered local chat

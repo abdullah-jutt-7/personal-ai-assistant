@@ -121,6 +121,11 @@ Requirements:
 - Assistant responses in the main chat should stay open and text-first, without a repeated avatar icon or heavy message card background.
 - User question bubbles should use a quiet flat surface, matching the upload-style pill treatment instead of a colorful gradient.
 - User question bubbles should stay compact, soft, and neutral, with modest radius and padding so short prompts do not look oversized.
+- Assistant markdown should use a slightly narrower readable measure and tighter paragraph spacing so long answers feel airy without looking loose.
+- The central chat column should stay slightly narrower than the sidebar-heavy examples when that improves readability and makes the transcript feel calmer.
+- The sidebar should stay dense and list-like rather than card-heavy; conversations should read like compact rows with minimal chrome.
+- The composer should stay visually light and minimally framed, and code blocks should use a softer, smaller container treatment so they do not dominate the transcript.
+- Header status chips, model pills, and the jump-to-bottom button should stay subtle and compact instead of visually dominating the canvas.
 - Conversation action popovers in the sidebar should float above adjacent sections with a strong enough stacking order to stay visible.
 - The light/dark theme control in the header should be icon-only, with labels exposed through accessible text instead of visible button copy.
 - Memory management UI should allow viewing and deleting uploaded memory sources.

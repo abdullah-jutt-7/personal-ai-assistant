@@ -116,23 +116,23 @@ export function AppSidebar({
   return (
     <aside
       className={[
-        "shrink-0 overflow-visible border-r border-[rgb(var(--border)/0.06)] bg-[rgb(var(--panel)/0.72)] p-[clamp(12px,0.85vw,16px)] backdrop-blur-2xl transition-transform duration-200 ease-out",
-        "rounded-r-[2rem] rounded-l-none shadow-[0_18px_50px_rgba(0,0,0,0.08)]",
+        "shrink-0 overflow-visible border-r border-[rgb(var(--border)/0.05)] bg-[rgb(var(--panel)/0.7)] p-[clamp(12px,0.85vw,16px)] backdrop-blur-2xl transition-transform duration-200 ease-out",
+        "rounded-r-[1.85rem] rounded-l-none shadow-[0_18px_45px_rgba(0,0,0,0.08)]",
         isCompactViewport ? "fixed inset-y-[clamp(8px,0.75vw,20px)] left-[clamp(8px,0.75vw,20px)] z-40" : "relative",
         isCompactViewport && !sidebarOpen ? "-translate-x-[110%]" : "translate-x-0",
       ].join(" ")}
       style={{ width: "clamp(300px, 21vw, 390px)" }}
     >
       <div className="mb-4 flex items-start justify-between gap-3">
-        <div className="flex flex-1 items-center gap-3 rounded-[1.45rem] bg-[rgb(var(--panel-soft)/0.7)] px-4 py-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,rgb(var(--accent)),rgb(var(--accent-2)))] text-white">
+        <div className="flex flex-1 items-center gap-3 rounded-[1.25rem] bg-[rgb(var(--panel-soft)/0.62)] px-3.5 py-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,rgb(var(--accent)),rgb(var(--accent-2)))] text-white">
             <Sparkles className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-xs font-medium uppercase tracking-[0.2em] text-[rgb(var(--muted))]">
+            <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[rgb(var(--muted))]">
               PersonalAIAsisstant
             </p>
-            <h1 className="text-lg font-semibold leading-tight">IntelliText</h1>
+            <h1 className="text-[1.02rem] font-semibold leading-tight">IntelliText</h1>
           </div>
         </div>
         {isCompactViewport && (
@@ -149,18 +149,18 @@ export function AppSidebar({
 
       <button
         onClick={onNewConversation}
-        className="mb-3 flex w-full items-center justify-center gap-2 rounded-full bg-[rgb(var(--text))] px-4 py-2.5 text-sm font-semibold text-[rgb(var(--bg))] transition hover:scale-[1.01]"
+        className="mb-3 flex w-full items-center justify-center gap-2 rounded-full bg-[rgb(var(--text))] px-4 py-2.25 text-sm font-semibold text-[rgb(var(--bg))] transition hover:scale-[1.01]"
       >
         <Plus className="h-4 w-4" />
         New conversation
       </button>
 
       <div className="space-y-2">
-        <div className="flex items-center gap-2 px-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
+        <div className="flex items-center gap-2 px-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-[rgb(var(--muted))]">
           <LibraryBig className="h-4 w-4" />
           Chats
         </div>
-        <label className="flex items-center gap-2 rounded-full bg-[rgb(var(--panel-soft)/0.68)] px-3 py-2 text-sm text-[rgb(var(--muted))]">
+        <label className="flex items-center gap-2 rounded-full bg-[rgb(var(--panel-soft)/0.62)] px-3 py-2 text-sm text-[rgb(var(--muted))]">
           <Search className="h-4 w-4" />
           <input
             value={conversationSearch}
@@ -172,14 +172,14 @@ export function AppSidebar({
 
         <div className="max-h-[340px] space-y-3 overflow-auto pr-1 scrollbar-hide">
           {conversations.length === 0 && (
-            <div className="rounded-[1.15rem] border border-dashed border-[rgb(var(--border)/0.12)] bg-[rgb(var(--panel-soft)/0.72)] p-3 text-sm text-[rgb(var(--muted))]">
+            <div className="rounded-[1rem] border border-dashed border-[rgb(var(--border)/0.12)] bg-[rgb(var(--panel-soft)/0.68)] p-3 text-sm text-[rgb(var(--muted))]">
               No conversations yet.
             </div>
           )}
 
           {groupedConversations.map((group) => (
             <div key={group.label} className="space-y-2">
-              <div className="sticky top-0 z-[1] bg-[rgb(var(--panel)/0.86)] py-1 text-[11px] font-medium uppercase tracking-[0.24em] text-[rgb(var(--muted))] backdrop-blur-xl">
+              <div className="sticky top-0 z-[1] bg-[rgb(var(--panel)/0.86)] py-1 text-[10px] font-medium uppercase tracking-[0.22em] text-[rgb(var(--muted))] backdrop-blur-xl">
                 {group.label}
               </div>
               <div className="space-y-2">
@@ -192,17 +192,17 @@ export function AppSidebar({
                       key={conversation.id}
                       ref={isMenuOpen ? menuRootRef : undefined}
                       className={[
-                        "group relative rounded-[1.15rem] px-3 py-2.5 transition",
+                        "group relative rounded-[0.95rem] px-3 py-2.25 transition",
                         isActive
-                          ? "bg-[rgb(var(--panel-soft)/0.82)]"
-                          : "bg-transparent hover:bg-[rgb(var(--panel-soft)/0.56)]",
+                          ? "bg-[rgb(var(--panel-soft)/0.72)]"
+                          : "bg-transparent hover:bg-[rgb(var(--panel-soft)/0.48)]",
                       ].join(" ")}
                     >
                       <button type="button" onClick={() => onSelectConversation(conversation.id)} className="w-full text-left">
-                        <p className="max-w-[calc(100%-42px)] truncate text-sm font-medium text-[rgb(var(--text))]">
+                        <p className="max-w-[calc(100%-42px)] truncate text-[13px] font-medium text-[rgb(var(--text))]">
                           {conversation.title}
                         </p>
-                        <p className="mt-1 text-[11px] text-[rgb(var(--muted))]">
+                        <p className="mt-1 text-[10px] text-[rgb(var(--muted))]">
                           Updated {formatConversationUpdatedAt(conversation.updated_at)}
                         </p>
                       </button>
@@ -210,21 +210,21 @@ export function AppSidebar({
                       <button
                         type="button"
                         onClick={() => setMenuOpenId((current) => (current === conversation.id ? null : conversation.id))}
-                        className="absolute right-2 top-2 z-40 inline-flex h-8 w-8 items-center justify-center rounded-full bg-[rgb(var(--panel-soft)/0.86)] text-[rgb(var(--muted))] opacity-100 transition hover:text-[rgb(var(--text))] md:opacity-0 md:group-hover:opacity-100"
+                        className="absolute right-2 top-2 z-40 inline-flex h-7 w-7 items-center justify-center rounded-full bg-[rgb(var(--panel-soft)/0.82)] text-[rgb(var(--muted))] opacity-100 transition hover:text-[rgb(var(--text))] md:opacity-0 md:group-hover:opacity-100"
                         aria-label={`Open conversation actions for ${conversation.title}`}
                       >
-                        <EllipsisVertical className="h-4 w-4" />
+                        <EllipsisVertical className="h-3.5 w-3.5" />
                       </button>
 
                       {isMenuOpen && (
-                        <div className="absolute right-2 top-[2.3rem] z-50 w-40 rounded-[1rem] bg-[rgb(var(--panel))] p-1 shadow-[0_16px_34px_rgba(0,0,0,0.12)] ring-1 ring-[rgb(var(--border)/0.06)]">
+                        <div className="absolute right-2 top-[2.15rem] z-50 w-40 rounded-[0.95rem] bg-[rgb(var(--panel))] p-1 shadow-[0_16px_34px_rgba(0,0,0,0.12)] ring-1 ring-[rgb(var(--border)/0.06)]">
                           <button
                             type="button"
                             onClick={() => {
                               setMenuOpenId(null);
                               onRenameConversation(conversation.id, conversation.title);
                             }}
-                            className="flex w-full items-center gap-2 rounded-[0.85rem] px-3 py-2 text-left text-sm text-[rgb(var(--text))] transition hover:bg-[rgb(var(--panel-soft))]"
+                            className="flex w-full items-center gap-2 rounded-[0.8rem] px-3 py-2 text-left text-sm text-[rgb(var(--text))] transition hover:bg-[rgb(var(--panel-soft))]"
                           >
                             <FilePenLine className="h-4 w-4" />
                             Rename
@@ -235,7 +235,7 @@ export function AppSidebar({
                               setMenuOpenId(null);
                               onDeleteConversation(conversation.id);
                             }}
-                            className="flex w-full items-center gap-2 rounded-[0.85rem] px-3 py-2 text-left text-sm text-[rgb(var(--text))] transition hover:bg-[rgb(var(--panel-soft))]"
+                            className="flex w-full items-center gap-2 rounded-[0.8rem] px-3 py-2 text-left text-sm text-[rgb(var(--text))] transition hover:bg-[rgb(var(--panel-soft))]"
                           >
                             <Trash2 className="h-4 w-4" />
                             Delete

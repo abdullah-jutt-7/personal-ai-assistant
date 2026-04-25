@@ -834,13 +834,13 @@ export default function Page() {
             onToggleTheme={handleToggleTheme}
           />
 
-          <div className="mx-auto flex min-h-0 w-full max-w-[800px] flex-1 flex-col">
+          <div className="mx-auto flex min-h-0 w-full max-w-[760px] flex-1 flex-col">
             <ThinkingPanel thinkingText={thinkingText} />
 
             <div
               ref={chatScrollRef}
               onScroll={handleChatScroll}
-              className="scrollbar-hide min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-[clamp(16px,1.3vw,28px)] py-[clamp(18px,1.8vw,34px)]"
+              className="scrollbar-hide min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-[clamp(16px,1.2vw,24px)] py-[clamp(16px,1.55vw,28px)]"
             >
               <MessageList messages={messages} theme={theme} />
             </div>
@@ -850,10 +850,10 @@ export default function Page() {
                 <button
                   type="button"
                   onClick={scrollChatToBottom}
-                  className="absolute left-1/2 top-0 z-20 inline-flex -translate-x-1/2 -translate-y-[calc(100%+12px)] items-center justify-center rounded-full border border-[rgb(var(--border)/0.08)] bg-[rgb(var(--panel))] p-2.5 text-[rgb(var(--text))] shadow-[0_12px_26px_rgba(0,0,0,0.12)] transition hover:scale-[1.01]"
+                  className="absolute left-1/2 top-0 z-20 inline-flex -translate-x-1/2 -translate-y-[calc(100%+10px)] items-center justify-center rounded-full border border-[rgb(var(--border)/0.06)] bg-[rgb(var(--panel-soft)/0.9)] p-2 text-[rgb(var(--text))] shadow-[0_8px_18px_rgba(0,0,0,0.08)] transition hover:scale-[1.01]"
                   aria-label="Scroll to bottom"
                 >
-                  <ArrowDown className="h-4 w-4" />
+                  <ArrowDown className="h-3.5 w-3.5" />
                 </button>
               )}
               <Composer

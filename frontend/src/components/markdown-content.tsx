@@ -64,8 +64,8 @@ function CodeBlock({ className, children, theme }: CodeBlockProps) {
   };
 
   return (
-    <div className="my-5 overflow-hidden rounded-[1.5rem] border border-[rgb(var(--border)/0.09)] bg-[rgb(var(--panel))]">
-      <div className="flex items-center justify-between gap-3 border-b border-[rgb(var(--border)/0.08)] px-4 py-3 text-xs text-[rgb(var(--muted))]">
+    <div className="my-4 overflow-hidden rounded-[1.2rem] border border-[rgb(var(--border)/0.08)] bg-[rgb(var(--panel))]">
+      <div className="flex items-center justify-between gap-3 border-b border-[rgb(var(--border)/0.06)] px-3.5 py-2.5 text-xs text-[rgb(var(--muted))]">
         <div className="flex items-center gap-2 font-medium text-[rgb(var(--text))]">
           <SquareCode className="h-4 w-4" />
           <span>{label}</span>
@@ -73,7 +73,7 @@ function CodeBlock({ className, children, theme }: CodeBlockProps) {
         <button
           type="button"
           onClick={handleCopy}
-          className="inline-flex items-center gap-2 rounded-full border border-[rgb(var(--border)/0.09)] bg-[rgb(var(--panel-soft))] px-3 py-1.5 text-xs font-medium text-[rgb(var(--text))] transition hover:scale-[1.01]"
+          className="inline-flex items-center gap-2 rounded-full border border-[rgb(var(--border)/0.08)] bg-[rgb(var(--panel-soft))] px-2.5 py-1.25 text-xs font-medium text-[rgb(var(--text))] transition hover:scale-[1.01]"
           aria-label="Copy code block"
         >
           {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
@@ -86,9 +86,9 @@ function CodeBlock({ className, children, theme }: CodeBlockProps) {
         customStyle={{
           margin: 0,
           background: "transparent",
-          padding: "1rem 1rem 1.1rem",
-          fontSize: "0.94rem",
-          lineHeight: 1.75,
+          padding: "0.9rem 0.95rem 1rem",
+          fontSize: "0.92rem",
+          lineHeight: 1.7,
           overflowX: "auto",
         }}
         codeTagProps={{
@@ -113,32 +113,32 @@ export function MarkdownContent({ content, theme }: MarkdownContentProps) {
         remarkPlugins={[remarkGfm]}
         components={{
           p({ children }) {
-            return <p className="mb-4 leading-7 last:mb-0">{children}</p>;
+            return <p className="mb-3 leading-7 last:mb-0">{children}</p>;
           },
           h1({ children }) {
-            return <h1 className="mb-4 text-2xl font-semibold leading-tight">{children}</h1>;
+            return <h1 className="mb-3 text-2xl font-semibold leading-tight">{children}</h1>;
           },
           h2({ children }) {
-            return <h2 className="mb-3 text-xl font-semibold leading-tight">{children}</h2>;
+            return <h2 className="mb-2.5 text-xl font-semibold leading-tight">{children}</h2>;
           },
           h3({ children }) {
-            return <h3 className="mb-3 text-lg font-semibold leading-tight">{children}</h3>;
+            return <h3 className="mb-2.5 text-lg font-semibold leading-tight">{children}</h3>;
           },
           h4({ children }) {
             return <h4 className="mb-2 text-base font-semibold leading-tight">{children}</h4>;
           },
           ul({ children }) {
-            return <ul className="mb-4 list-disc space-y-2 pl-6 leading-7">{children}</ul>;
+            return <ul className="mb-3 list-disc space-y-2 pl-6 leading-7">{children}</ul>;
           },
           ol({ children }) {
-            return <ol className="mb-4 list-decimal space-y-2 pl-6 leading-7">{children}</ol>;
+            return <ol className="mb-3 list-decimal space-y-2 pl-6 leading-7">{children}</ol>;
           },
           li({ children }) {
             return <li className="pl-1">{children}</li>;
           },
           blockquote({ children }) {
             return (
-              <blockquote className="mb-4 border-l-4 border-[rgb(var(--accent))] pl-4 italic text-[rgb(var(--muted))]">
+              <blockquote className="mb-3 border-l-4 border-[rgb(var(--accent))] pl-4 italic text-[rgb(var(--muted))]">
                 {children}
               </blockquote>
             );
@@ -154,11 +154,11 @@ export function MarkdownContent({ content, theme }: MarkdownContentProps) {
             );
           },
           hr() {
-            return <hr className="my-6 border-[rgb(var(--border)/0.08)]" />;
+            return <hr className="my-5 border-[rgb(var(--border)/0.08)]" />;
           },
           table({ children }) {
             return (
-              <div className="my-5 overflow-x-auto rounded-[1.25rem] border border-[rgb(var(--border)/0.09)]">
+              <div className="my-4 overflow-x-auto rounded-[1.1rem] border border-[rgb(var(--border)/0.08)]">
                 <table className="min-w-full border-collapse text-left text-sm">{children}</table>
               </div>
             );
@@ -187,7 +187,7 @@ export function MarkdownContent({ content, theme }: MarkdownContentProps) {
           }) {
             if (inline) {
               return (
-                <code className="rounded-md border border-[rgb(var(--border)/0.09)] bg-[rgb(var(--panel-soft))] px-1.5 py-0.5 font-mono text-[0.92em] text-[rgb(var(--text))]">
+                <code className="rounded-md border border-[rgb(var(--border)/0.08)] bg-[rgb(var(--panel-soft))] px-1.5 py-0.5 font-mono text-[0.92em] text-[rgb(var(--text))]">
                   {children}
                 </code>
               );
