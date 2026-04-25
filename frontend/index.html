@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Personal AI Assistant</title>
+    <!-- Your custom CSS -->
+    <link rel="stylesheet" href="statics/style.css" />
+    <!-- Bootstrap CSS v5.3.2 -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+      crossorigin="anonymous"
+    />
+    <style>
+      .ai-msg { line-height: 1.6; }
+      .ai-msg p { margin-bottom: 12px; }
+      .ai-msg pre { background: #282c34; color: #abb2bf; padding: 12px; border-radius: 8px; overflow-x: auto; font-family: monospace; }
+      .ai-msg code { background: #e9ecef; color: #d63384; padding: 2px 4px; border-radius: 4px; font-family: monospace; }
+      .ai-msg pre code { background: transparent; color: inherit; padding: 0; border-radius: 0; font-family: inherit;}
+      .ai-msg ul, .ai-msg ol { padding-left: 20px; margin-bottom: 12px; }
+      .ai-msg h1, .ai-msg h2, .ai-msg h3 { margin-top: 15px; margin-bottom: 10px; font-weight: bold; }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <aside class="sidebar">
+        <a href="">
+          <img
+            src="statics/assets/intellitext-logo.png"
+            alt="Logo"
+            height="60px"
+          />
+        </a>
+        <ul id="conversationList">
+          <!-- Saved conversations will be listed here -->
+        </ul>
+        <button id="newChatBtn" class="btn-fill">+ New Chat</button>
+      </aside>
+
+      <main class="chat-container">
+        <div id="chat-header" style="flex-direction: column;">
+          <div class="header-btn" style="width: 100%; display: flex; justify-content: flex-end; padding: 10px; gap: 10px;">
+            <input type="file" id="uploadInput" style="display: none;" />
+            <button class="btn-fill" onclick="document.getElementById('uploadInput').click()">
+              Upload File
+            </button>
+            <button class="btn-fill" id="trainBtn">Train</button>
+          </div>
+          <div id="trainingStatusContainer" style="display: none; width: 100%; margin-top: 5px; padding: 0 20px 10px 20px;">
+             <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; color: #555;">
+                <span id="trainingStatusText">Initializing...</span>
+                <span id="trainingTimeText"></span>
+             </div>
+             <div class="progress" style="height: 10px;">
+                <div id="trainProgressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-warning" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+             </div>
+          </div>
+        </div>
+        <div id="chatbox"></div>
+        <div class="input-area">
+          <input
+            type="text"
+            id="userInput"
+            placeholder="Type your message..."
+            autofocus
+          />
+          <button class="submit-btn" onclick="sendMessage()">
+            <img
+              src="statics/assets/right-arrow.png"
+              alt="Send"
+              height="25px"
+              width="25px"
+            />
+          </button>
+        </div>
+      </main>
+    </div>
+
+    <!-- Marked JS for Markdown formatting -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Your JS -->
+    <script src="app.js"></script>
+
+    <!-- Bootstrap JS Libraries -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+      integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
+      integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
+      crossorigin="anonymous"
+    ></script>
+  </body>
+</html>
