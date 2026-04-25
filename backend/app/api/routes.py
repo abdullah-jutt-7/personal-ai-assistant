@@ -34,6 +34,7 @@ from backend.app.schemas.datasets import (
     DatasetUpdateRequest,
     DatasetUpdateResponse,
 )
+from backend.app.schemas.settings import ModelSettingsResponse, ModelSettingsUpdateRequest
 from backend.app.schemas.memory import (
     MemoryChunkSummary,
     MemoryDeleteResponse,
@@ -43,6 +44,7 @@ from backend.app.schemas.memory import (
     MemoryUpdateResponse,
 )
 from backend.app.services.dataset_context import build_dataset_context
+from backend.app.services.app_settings import get_active_ollama_model, set_active_ollama_model
 from backend.app.services.dataset_store import delete_dataset_folder, hash_content, save_dataset_file
 from backend.app.services.memory_context import build_memory_context
 from backend.app.services.ollama_client import generate_reply, stream_reply
@@ -52,14 +54,28 @@ router = APIRouter(prefix="/api", tags=["api"])
 
 
 @router.get("/health")
-def health():
+def health(db: Session = Depends(get_db)):
     return {
         "status": "ok",
         "assistant": "IntelliText",
         "backend": "FastAPI",
         "database": "SQLite",
-        "model": settings.ollama_model,
+        "model": get_active_ollama_model(db),
     }
+
+
+@router.get("/settings/model", response_model=ModelSettingsResponse)
+def get_model_settings(db: Session = Depends(get_db)):
+    return {"ollama_model": get_active_ollama_model(db)}
+
+
+@router.put("/settings/model", response_model=ModelSettingsResponse)
+def update_model_settings(
+    payload: ModelSettingsUpdateRequest,
+    db: Session = Depends(get_db),
+):
+    model_name = set_active_ollama_model(db, payload.ollama_model)
+    return {"ollama_model": model_name}
 
 
 @router.get("/conversations", response_model=list[ConversationSummary])
@@ -239,10 +255,12 @@ async def chat(request: ChatRequest, db: Session = Depends(get_db)):
     ]
     memory_context = build_memory_context(db)
     dataset_context = build_dataset_context(db)
+    model_name = get_active_ollama_model(db)
 
     try:
         assistant_text = await generate_reply(
             ollama_messages,
+            model_name=model_name,
             memory_context=memory_context,
             dataset_context=dataset_context,
         )
@@ -304,6 +322,7 @@ async def chat_stream(request: ChatRequest, db: Session = Depends(get_db)):
     ]
     memory_context = build_memory_context(db)
     dataset_context = build_dataset_context(db)
+    model_name = get_active_ollama_model(db)
 
     def sse(event: str, data: dict[str, object]) -> str:
         return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
@@ -317,12 +336,13 @@ async def chat_stream(request: ChatRequest, db: Session = Depends(get_db)):
                 "meta",
                 {
                     "conversation_id": conversation.id,
-                    "model": settings.ollama_model,
+                    "model": model_name,
                 },
             )
 
             async for piece in stream_reply(
                 ollama_messages,
+                model_name=model_name,
                 memory_context=memory_context,
                 dataset_context=dataset_context,
             ):

@@ -42,11 +42,12 @@ def build_system_prompt(memory_context: str = "", dataset_context: str = "") -> 
 async def generate_reply(
     messages: list[dict[str, str]],
     *,
+    model_name: str,
     memory_context: str = "",
     dataset_context: str = "",
 ) -> str:
     payload = {
-        "model": settings.ollama_model,
+        "model": model_name,
         "messages": [
             {"role": "system", "content": build_system_prompt(memory_context, dataset_context)},
             *messages,
@@ -65,11 +66,12 @@ async def generate_reply(
 async def stream_reply(
     messages: list[dict[str, str]],
     *,
+    model_name: str,
     memory_context: str = "",
     dataset_context: str = "",
 ) -> AsyncIterator[dict[str, str]]:
     payload = {
-        "model": settings.ollama_model,
+        "model": model_name,
         "messages": [
             {"role": "system", "content": build_system_prompt(memory_context, dataset_context)},
             *messages,

@@ -12,6 +12,10 @@ export type ChatMessage = {
 
 export type Theme = "dark" | "light";
 
+export type ModelSettings = {
+  ollama_model: string;
+};
+
 export type DatasetSummary = {
   id: number;
   name: string;

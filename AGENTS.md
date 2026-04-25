@@ -216,6 +216,7 @@ We will implement the project in stages.
 ### Stage 4 - Polish
 - [x] Improve visuals and motion.
 - [ ] Add settings and model selection.
+- [x] Add settings and model selection.
 - [x] Add dark and light mode theme toggle.
 - [x] Add memory management UI.
 - [ ] Add startup and tray behavior if desired.
@@ -268,6 +269,7 @@ Repo status:
 - Imported datasets can now be deleted from the sidebar, which also cleans up their local storage folder.
 - Imported datasets can now be inspected through a details panel showing sources, versions, and chunk previews.
 - Imported datasets can now be renamed and re-described from the details panel.
+- The active Ollama model can now be viewed and changed from the sidebar settings card.
 - This file now defines the working direction.
 
 Immediate next step:

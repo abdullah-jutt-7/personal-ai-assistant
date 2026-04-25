@@ -1,5 +1,5 @@
 import type { ChangeEvent } from "react";
-import { FileText, LibraryBig, Plus, Sparkles, Trash2, X } from "lucide-react";
+import { FileText, LibraryBig, Plus, Settings2, Sparkles, Trash2, X } from "lucide-react";
 
 import type { ConversationSummary, DatasetSummary, MemorySummary } from "@/lib/chat-types";
 
@@ -21,6 +21,10 @@ type SidebarProps = {
   onSelectDataset: (datasetId: number) => void;
   onDeleteMemory: (memoryId: number) => void;
   onSelectMemory: (memoryId: number) => void;
+  modelDraft: string;
+  modelEditStatus: string;
+  onModelDraftChange: (value: string) => void;
+  onSaveModel: () => void;
 };
 
 export function AppSidebar({
@@ -41,7 +45,13 @@ export function AppSidebar({
   onSelectDataset,
   onDeleteMemory,
   onSelectMemory,
+  modelDraft,
+  modelEditStatus,
+  onModelDraftChange,
+  onSaveModel,
 }: SidebarProps) {
+  const quickModels = ["qwen3:4b", "qwen3.5:2b", "llama3.2:3b", "qwen3:8b", "phi4"];
+
   return (
     <aside
       className={[
@@ -80,6 +90,48 @@ export function AppSidebar({
         <Plus className="h-4 w-4" />
         New conversation
       </button>
+
+      <div className="mb-4 space-y-3 rounded-3xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-4">
+        <div className="flex items-center gap-2 text-sm font-semibold">
+          <Settings2 className="h-4 w-4" />
+          App settings
+        </div>
+        <label className="block space-y-2 text-xs uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
+          Active model
+          <input
+            value={modelDraft}
+            onChange={(event) => onModelDraftChange(event.target.value)}
+            className="w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel))] px-3 py-2 text-sm text-[rgb(var(--text))] outline-none"
+          />
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {quickModels.map((model) => (
+            <button
+              key={model}
+              type="button"
+              onClick={() => onModelDraftChange(model)}
+              className={[
+                "rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.22em] transition",
+                modelDraft === model
+                  ? "border-[rgb(var(--text))] bg-[rgb(var(--text))] text-[rgb(var(--bg))]"
+                  : "border-[rgb(var(--border))] bg-[rgb(var(--panel))] text-[rgb(var(--muted))] hover:text-[rgb(var(--text))]",
+              ].join(" ")}
+            >
+              {model}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={onSaveModel}
+            className="rounded-full bg-[rgb(var(--text))] px-4 py-2 text-sm font-semibold text-[rgb(var(--bg))]"
+          >
+            Save model
+          </button>
+          <span className="text-xs text-[rgb(var(--muted))]">{modelEditStatus}</span>
+        </div>
+      </div>
 
       <div className="space-y-2">
         <div className="flex items-center gap-2 px-2 text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
