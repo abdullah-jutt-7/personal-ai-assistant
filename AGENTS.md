@@ -112,12 +112,15 @@ Requirements:
 - The document itself must not scroll during normal chat use; the conversation pane owns the scroll area.
 - The composer must send on Enter and allow Shift+Enter for line breaks.
 - The conversation pane should auto-scroll to the latest assistant/user message during normal chat flow.
+- The conversation pane should auto-scroll only when the user is already at the bottom or when sending a new message; it must not fight the user while they scroll up.
+- Drive chat autoscroll from the message send/stream path rather than from a render effect to avoid update-depth loops.
 - User memory upload should be easy to find and easy to understand.
 - Include a clear model/status area in the header.
 - For the final-year demo, support an expandable reasoning/thinking view so we can show what the model is doing without cluttering the main chat.
 - Assistant responses should render rich markdown with styled headings, paragraphs, lists, inline code, tables, and highlighted code blocks.
 - Assistant responses in the main chat should stay open and text-first, without a repeated avatar icon or heavy message card background.
 - User question bubbles should use a quiet flat surface, matching the upload-style pill treatment instead of a colorful gradient.
+- User question bubbles should stay compact, soft, and neutral, with modest radius and padding so short prompts do not look oversized.
 - Conversation action popovers in the sidebar should float above adjacent sections with a strong enough stacking order to stay visible.
 - The light/dark theme control in the header should be icon-only, with labels exposed through accessible text instead of visible button copy.
 - Memory management UI should allow viewing and deleting uploaded memory sources.

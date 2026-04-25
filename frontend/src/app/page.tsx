@@ -66,6 +66,8 @@ export default function Page() {
   const [isCompactViewport, setIsCompactViewport] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
+  const isChatAtBottomRef = useRef(true);
+  const isProgrammaticScrollRef = useRef(false);
   const [datasets, setDatasets] = useState<DatasetSummary[]>([]);
   const [selectedDataset, setSelectedDataset] = useState<DatasetDetail | null>(null);
   const [datasetDraftName, setDatasetDraftName] = useState("");
@@ -134,34 +136,57 @@ export default function Page() {
     void bootstrap();
   }, []);
 
-  useEffect(() => {
-    const container = chatScrollRef.current;
-    if (!container) return;
-
-    container.scrollTo({
-      top: container.scrollHeight,
-      behavior: isSending ? "smooth" : "auto",
-    });
-    setIsChatAtBottom(true);
-  }, [messages, thinkingText, isSending]);
-
   const handleChatScroll = () => {
     const container = chatScrollRef.current;
     if (!container) return;
 
+    if (isProgrammaticScrollRef.current) {
+      return;
+    }
+
     const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
-    setIsChatAtBottom(distanceFromBottom < 24);
+    const nextAtBottom = distanceFromBottom < 24;
+    isChatAtBottomRef.current = nextAtBottom;
+    setIsChatAtBottom((current) => (current === nextAtBottom ? current : nextAtBottom));
   };
 
   const scrollChatToBottom = () => {
     const container = chatScrollRef.current;
     if (!container) return;
 
+    isProgrammaticScrollRef.current = true;
     container.scrollTo({
       top: container.scrollHeight,
       behavior: "smooth",
     });
+    isChatAtBottomRef.current = true;
     setIsChatAtBottom(true);
+    window.setTimeout(() => {
+      isProgrammaticScrollRef.current = false;
+    }, 400);
+  };
+
+  const scheduleChatScrollToBottom = (behavior: ScrollBehavior = "auto", force = false) => {
+    if (!force && !isChatAtBottomRef.current) {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      const container = chatScrollRef.current;
+      if (!container) return;
+
+      isProgrammaticScrollRef.current = true;
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior,
+      });
+      isChatAtBottomRef.current = true;
+      setIsChatAtBottom(true);
+
+      window.setTimeout(() => {
+        isProgrammaticScrollRef.current = false;
+      }, behavior === "smooth" ? 400 : 0);
+    });
   };
 
   async function bootstrap() {
@@ -310,6 +335,7 @@ export default function Page() {
     setInput("");
     setIsSending(true);
     setThinkingText("");
+    scheduleChatScrollToBottom("auto", true);
 
     let assistantIndex = -1;
 
@@ -319,6 +345,7 @@ export default function Page() {
         assistantIndex = next.length - 1;
         return next;
       });
+      scheduleChatScrollToBottom("auto", true);
 
       const res = await fetch(`${apiBaseUrl}/api/chat/stream`, {
         method: "POST",
@@ -352,6 +379,7 @@ export default function Page() {
           };
           return next;
         });
+        scheduleChatScrollToBottom("auto", true);
       };
 
       const parseEventBlock = (block: string) => {
@@ -405,6 +433,7 @@ export default function Page() {
                 };
                 return next;
               });
+              scheduleChatScrollToBottom("auto", true);
             }
           } else if (eventName === "error") {
             throw new Error(payload.detail || "Streaming failed");

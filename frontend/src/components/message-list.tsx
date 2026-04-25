@@ -42,7 +42,7 @@ export function MessageList({ messages, theme }: MessageListProps) {
           >
             {isUser ? (
               <div className="max-w-[82%]">
-                <div className="inline-flex w-fit max-w-full rounded-[1.1rem] bg-[rgb(var(--panel-soft)/0.5)] px-4 py-2 text-sm leading-6 text-[rgb(var(--text))] ring-1 ring-[rgb(var(--border)/0.04)] shadow-[0_6px_14px_rgba(0,0,0,0.03)]">
+                <div className="inline-flex w-fit max-w-full rounded-[1rem] bg-[rgb(var(--panel-soft)/0.62)] px-3.5 py-2 text-sm leading-6 text-[rgb(var(--text))] ring-1 ring-[rgb(var(--border)/0.05)] shadow-[0_4px_10px_rgba(0,0,0,0.02)]">
                   <p className="whitespace-pre-wrap">{visibleText}</p>
                 </div>
                 {shouldTruncate && (
