@@ -69,3 +69,10 @@ export type MemoryDetail = MemorySummary & {
   content_text: string;
   chunks: MemoryChunk[];
 };
+
+export type MemoryUpdateResult = {
+  success: boolean;
+  memory_source_id: number;
+  name: string;
+  chunk_count: number;
+};

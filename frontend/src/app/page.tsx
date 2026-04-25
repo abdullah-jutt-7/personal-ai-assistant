@@ -14,6 +14,7 @@ import type {
   DatasetSummary,
   MemoryDetail,
   MemorySummary,
+  MemoryUpdateResult,
   Theme,
 } from "@/lib/chat-types";
 
@@ -47,6 +48,9 @@ export default function Page() {
   const [datasetFileName, setDatasetFileName] = useState<string | null>(null);
   const [memorySources, setMemorySources] = useState<MemorySummary[]>([]);
   const [selectedMemory, setSelectedMemory] = useState<MemoryDetail | null>(null);
+  const [memoryDraftName, setMemoryDraftName] = useState("");
+  const [memoryDraftText, setMemoryDraftText] = useState("");
+  const [memoryEditStatus, setMemoryEditStatus] = useState("");
   const [thinkingText, setThinkingText] = useState("");
   const [theme, setTheme] = useState<Theme>("dark");
   const [activeModel, setActiveModel] = useState("qwen3:4b");
@@ -142,6 +146,9 @@ export default function Page() {
       setDatasets(datasetData);
       setMemorySources(memoryData);
       setSelectedMemory(null);
+      setMemoryDraftName("");
+      setMemoryDraftText("");
+      setMemoryEditStatus("");
 
       if (convData.length > 0) {
         const first = convData[0];
@@ -440,6 +447,9 @@ export default function Page() {
       }
       if (selectedMemory?.id === memoryId) {
         setSelectedMemory(null);
+        setMemoryDraftName("");
+        setMemoryDraftText("");
+        setMemoryEditStatus("");
       }
     } catch (error) {
       console.error(error);
@@ -450,11 +460,53 @@ export default function Page() {
     try {
       const res = await fetch(`${apiBaseUrl}/api/memory/${memoryId}`);
       if (!res.ok) return;
-      setSelectedMemory((await res.json()) as MemoryDetail);
+      const data = (await res.json()) as MemoryDetail;
+      setSelectedMemory(data);
+      setMemoryDraftName(data.name);
+      setMemoryDraftText(data.content_text);
+      setMemoryEditStatus("");
       setSelectedDataset(null);
       if (isCompactViewport) setSidebarOpen(false);
     } catch (error) {
       console.error(error);
+    }
+  }
+
+  async function saveMemoryDetails() {
+    if (!selectedMemory) return;
+
+    try {
+      const res = await fetch(`${apiBaseUrl}/api/memory/${selectedMemory.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: memoryDraftName,
+          content_text: memoryDraftText,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Save failed with status ${res.status}`);
+      }
+
+      const data = (await res.json()) as MemoryUpdateResult;
+      setMemoryEditStatus(`Saved ${data.chunk_count} chunks`);
+
+      const refreshedDetail = await fetch(`${apiBaseUrl}/api/memory/${selectedMemory.id}`);
+      if (refreshedDetail.ok) {
+        const next = (await refreshedDetail.json()) as MemoryDetail;
+        setSelectedMemory(next);
+        setMemoryDraftName(next.name);
+        setMemoryDraftText(next.content_text);
+      }
+
+      const refresh = await fetch(`${apiBaseUrl}/api/memory`);
+      if (refresh.ok) {
+        setMemorySources((await refresh.json()) as MemorySummary[]);
+      }
+    } catch (error) {
+      console.error(error);
+      setMemoryEditStatus("Save failed");
     }
   }
 
@@ -636,6 +688,38 @@ export default function Page() {
                       <div className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
                         <p className="font-medium">{selectedMemory?.original_filename || "Unknown file"}</p>
                         <p className="mt-1 text-xs text-[rgb(var(--muted))]">{selectedMemory?.content_text.length || 0} characters stored</p>
+                      </div>
+                    </section>
+
+                    <section className="space-y-2">
+                      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
+                        Edit Memory
+                      </p>
+                      <label className="block space-y-2 text-xs uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
+                        Name
+                        <input
+                          value={memoryDraftName}
+                          onChange={(event) => setMemoryDraftName(event.target.value)}
+                          className="w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] px-3 py-2 text-sm text-[rgb(var(--text))] outline-none"
+                        />
+                      </label>
+                      <label className="block space-y-2 text-xs uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
+                        Content
+                        <textarea
+                          value={memoryDraftText}
+                          onChange={(event) => setMemoryDraftText(event.target.value)}
+                          className="min-h-[180px] w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] px-3 py-2 text-sm leading-6 text-[rgb(var(--text))] outline-none"
+                        />
+                      </label>
+                      <div className="flex items-center justify-between gap-3">
+                        <button
+                          type="button"
+                          onClick={saveMemoryDetails}
+                          className="rounded-full bg-[rgb(var(--text))] px-4 py-2 text-sm font-semibold text-[rgb(var(--bg))]"
+                        >
+                          Save changes
+                        </button>
+                        <span className="text-xs text-[rgb(var(--muted))]">{memoryEditStatus}</span>
                       </div>
                     </section>
 

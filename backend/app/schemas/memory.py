@@ -26,6 +26,18 @@ class MemoryDetailResponse(BaseModel):
     chunks: list[MemoryChunkSummary]
 
 
+class MemoryUpdateRequest(BaseModel):
+    name: str
+    content_text: str
+
+
+class MemoryUpdateResponse(BaseModel):
+    success: bool
+    memory_source_id: int
+    name: str
+    chunk_count: int
+
+
 class MemoryDeleteResponse(BaseModel):
     success: bool
     memory_source_id: int

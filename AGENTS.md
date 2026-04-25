@@ -117,6 +117,7 @@ Requirements:
 - Assistant responses should render rich markdown with styled headings, paragraphs, lists, inline code, tables, and highlighted code blocks.
 - Memory management UI should allow viewing and deleting uploaded memory sources.
 - Memory management UI should also support a read-only details view with chunks and file metadata.
+- Memory management UI should also support editing the memory title and content text.
 - Support both dark mode and light mode from the start.
 - Include a theme toggle that remembers the user's preference locally.
 - Stream assistant responses live into the chat bubble instead of waiting for the full completion.
@@ -229,6 +230,7 @@ We will implement the project in stages.
 - [x] Add dataset details panel for inspection.
 - [x] Add memory source list and delete controls.
 - [x] Add memory details inspection flow.
+- [x] Add memory editing workflow.
 
 ## Working Rules
 
@@ -258,6 +260,7 @@ Repo status:
 - Uploaded memory now influences future prompts through a bounded local-memory system prompt section.
 - Uploaded memory sources can now be listed and deleted from the sidebar.
 - Uploaded memory sources can now be inspected through a details panel showing file metadata and chunk previews.
+- Uploaded memory sources can now be edited from the details panel and re-chunked.
 - Local dataset imports now create stored files and metadata entries, with a sidebar list of imported datasets.
 - Imported datasets now contribute bounded prompt-time context chunks alongside memory.
 - Imported datasets can now be deleted from the sidebar, which also cleans up their local storage folder.

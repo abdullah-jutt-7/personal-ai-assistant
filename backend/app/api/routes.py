@@ -37,6 +37,8 @@ from backend.app.schemas.memory import (
     MemoryDeleteResponse,
     MemoryDetailResponse,
     MemorySourceSummary,
+    MemoryUpdateRequest,
+    MemoryUpdateResponse,
 )
 from backend.app.services.dataset_context import build_dataset_context
 from backend.app.services.dataset_store import delete_dataset_folder, hash_content, save_dataset_file
@@ -465,6 +467,57 @@ def delete_memory_source(memory_source_id: int, db: Session = Depends(get_db)):
     db.commit()
 
     return {"success": True, "memory_source_id": memory_source_id}
+
+
+@router.put("/memory/{memory_source_id}", response_model=MemoryUpdateResponse)
+def update_memory_source(
+    memory_source_id: int,
+    payload: MemoryUpdateRequest,
+    db: Session = Depends(get_db),
+):
+    source = db.get(MemorySource, memory_source_id)
+    if source is None:
+        raise HTTPException(status_code=404, detail="Memory source not found")
+
+    name = payload.name.strip()
+    content_text = payload.content_text.strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="Memory name is required")
+    if not content_text:
+        raise HTTPException(status_code=400, detail="Memory content is required")
+
+    for chunk in db.scalars(
+        select(MemoryChunk).where(MemoryChunk.memory_source_id == source.id)
+    ).all():
+        db.delete(chunk)
+
+    chunks = [chunk.strip() for chunk in content_text.split("\n\n") if chunk.strip()]
+    if not chunks and content_text.strip():
+        chunks = [content_text.strip()]
+
+    source.name = name
+    source.content_text = content_text
+    source.updated_at = datetime.utcnow()
+
+    db.flush()
+
+    for index, chunk in enumerate(chunks):
+        db.add(
+            MemoryChunk(
+                memory_source_id=source.id,
+                chunk_index=index,
+                chunk_text=chunk,
+            )
+        )
+
+    db.commit()
+
+    return {
+        "success": True,
+        "memory_source_id": source.id,
+        "name": source.name,
+        "chunk_count": len(chunks),
+    }
 
 
 @router.post("/datasets/upload", response_model=DatasetImportResponse)
