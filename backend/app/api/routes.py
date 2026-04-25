@@ -28,6 +28,7 @@ def health():
         "assistant": "IntelliText",
         "backend": "FastAPI",
         "database": "SQLite",
+        "model": settings.ollama_model,
     }
 
 

@@ -195,8 +195,9 @@ We will implement the project in stages.
 - [ ] Verify first-run experience.
 
 ### Stage 4 - Polish
-- [ ] Improve visuals and motion.
+- [x] Improve visuals and motion.
 - [ ] Add settings and model selection.
+- [x] Add dark and light mode theme toggle.
 - [ ] Add memory management UI.
 - [ ] Add startup and tray behavior if desired.
 
@@ -216,6 +217,7 @@ Repo status:
 - Old implementation removed.
 - Initial Python backend and Next.js frontend scaffold are in place.
 - Live streamed chat responses are now implemented.
+- Dark and light mode theming is now implemented.
 - This file now defines the working direction.
 
 Immediate next step:

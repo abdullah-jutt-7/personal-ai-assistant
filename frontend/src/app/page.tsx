@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, Bot, FileText, Plus, Sparkles, LibraryBig } from "lucide-react";
+import { ArrowRight, Bot, FileText, LibraryBig, MoonStar, Plus, Sparkles, SunMedium } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import clsx from "clsx";
@@ -18,7 +18,10 @@ type ChatMessage = {
   content: string;
 };
 
+type Theme = "dark" | "light";
+
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8000";
+const themeStorageKey = "personalaiasisstant-theme";
 
 const starterMessages: ChatMessage[] = [
   {
@@ -36,7 +39,20 @@ export default function Page() {
   const [isSending, setIsSending] = useState(false);
   const [status, setStatus] = useState("Checking local backend...");
   const [memoryFileName, setMemoryFileName] = useState<string | null>(null);
-  const [thinkingText, setThinkingText] = useState<string>("");
+  const [thinkingText, setThinkingText] = useState("");
+  const [theme, setTheme] = useState<Theme>("dark");
+  const [activeModel, setActiveModel] = useState("qwen3:4b");
+
+  useEffect(() => {
+    const storedTheme = window.localStorage.getItem(themeStorageKey) as Theme | null;
+    const systemTheme = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+    setTheme(storedTheme ?? systemTheme);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    window.localStorage.setItem(themeStorageKey, theme);
+  }, [theme]);
 
   useEffect(() => {
     void bootstrap();
@@ -53,6 +69,7 @@ export default function Page() {
       const convData = (await convRes.json()) as ConversationSummary[];
 
       setStatus(`${health.assistant} ready on local backend`);
+      setActiveModel(health.model ?? "qwen3:4b");
       setConversations(convData);
 
       if (convData.length > 0) {
@@ -275,35 +292,35 @@ export default function Page() {
   );
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(47,86,255,0.22),_transparent_35%),radial-gradient(circle_at_top_right,_rgba(255,122,89,0.16),_transparent_26%),linear-gradient(180deg,#07111f_0%,#050b14_100%)] text-white">
+    <main className="app-shell min-h-screen text-[rgb(var(--text))]">
       <div className="mx-auto flex min-h-screen max-w-[1600px] gap-6 p-4 lg:p-6">
-        <aside className="w-[320px] shrink-0 rounded-3xl border border-white/8 bg-white/5 p-4 shadow-glow backdrop-blur-xl">
-          <div className="mb-6 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#7c8cff,#9f7cff)]">
+        <aside className="app-panel w-[320px] shrink-0 rounded-3xl p-4">
+          <div className="mb-6 flex items-center gap-3 rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,rgb(var(--accent)),rgb(var(--accent-2)))] text-white">
               <Sparkles className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm font-medium text-white/60">PersonalAIAsisstant</p>
+              <p className="text-sm font-medium text-[rgb(var(--muted))]">PersonalAIAsisstant</p>
               <h1 className="text-lg font-semibold">IntelliText</h1>
             </div>
           </div>
 
           <button
             onClick={startNewConversation}
-            className="mb-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-slate-950 transition hover:scale-[1.01]"
+            className="mb-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--text))] px-4 py-3 text-sm font-semibold text-[rgb(var(--bg))] transition hover:scale-[1.01]"
           >
             <Plus className="h-4 w-4" />
             New conversation
           </button>
 
           <div className="space-y-2">
-            <div className="flex items-center gap-2 px-2 text-xs font-semibold uppercase tracking-[0.24em] text-white/40">
+            <div className="flex items-center gap-2 px-2 text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
               <LibraryBig className="h-4 w-4" />
               Chats
             </div>
             <div className="max-h-[340px] space-y-2 overflow-auto pr-1">
               {conversations.length === 0 && (
-                <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 p-4 text-sm text-white/55">
+                <div className="rounded-2xl border border-dashed border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-4 text-sm text-[rgb(var(--muted))]">
                   No conversations yet.
                 </div>
               )}
@@ -314,12 +331,12 @@ export default function Page() {
                   className={clsx(
                     "w-full rounded-2xl border px-4 py-3 text-left transition",
                     activeConversationId === conversation.id
-                      ? "border-white/20 bg-white/10"
-                      : "border-white/8 bg-white/5 hover:bg-white/8",
+                      ? "border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))]"
+                      : "border-[rgb(var(--border))] bg-[rgb(var(--panel))] hover:bg-[rgb(var(--panel-soft))]",
                   )}
                 >
                   <p className="truncate text-sm font-medium">{conversation.title}</p>
-                  <p className="mt-1 text-xs text-white/45">
+                  <p className="mt-1 text-xs text-[rgb(var(--muted))]">
                     Updated {new Date(conversation.updated_at).toLocaleString()}
                   </p>
                 </button>
@@ -327,12 +344,12 @@ export default function Page() {
             </div>
           </div>
 
-          <div className="mt-6 space-y-3 rounded-3xl border border-white/8 bg-black/20 p-4">
-            <div className="flex items-center gap-2 text-sm font-semibold text-white/75">
+          <div className="mt-6 space-y-3 rounded-3xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-4">
+            <div className="flex items-center gap-2 text-sm font-semibold">
               <FileText className="h-4 w-4" />
               Memory upload
             </div>
-            <label className="flex cursor-pointer items-center justify-center rounded-2xl border border-dashed border-white/12 bg-white/5 px-4 py-4 text-sm text-white/60 transition hover:bg-white/8">
+            <label className="flex cursor-pointer items-center justify-center rounded-2xl border border-dashed border-[rgb(var(--border))] bg-transparent px-4 py-4 text-sm text-[rgb(var(--muted))] transition hover:bg-[rgb(var(--panel))]">
               <input
                 type="file"
                 accept=".txt"
@@ -341,35 +358,52 @@ export default function Page() {
               />
               Upload .txt memory file
             </label>
-            <p className="text-xs leading-5 text-white/45">
+            <p className="text-xs leading-5 text-[rgb(var(--muted))]">
               Files will become local assistant memory in the next backend stage.
             </p>
             {memoryFileName && (
-              <p className="rounded-xl bg-emerald-500/10 px-3 py-2 text-xs text-emerald-200">
+              <p
+                className="rounded-xl px-3 py-2 text-xs text-[rgb(var(--text))]"
+                style={{ backgroundColor: "rgb(var(--accent) / 0.12)" }}
+              >
                 Ready to store: {memoryFileName}
               </p>
             )}
           </div>
         </aside>
 
-        <section className="flex min-w-0 flex-1 flex-col rounded-[2rem] border border-white/8 bg-white/[0.045] shadow-glow backdrop-blur-xl">
-          <header className="flex items-center justify-between border-b border-white/8 px-6 py-4">
+        <section className="app-panel flex min-w-0 flex-1 flex-col rounded-[2rem]">
+          <header className="flex items-center justify-between border-b border-[rgb(var(--border))] px-6 py-4">
             <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-white/40">Local AI workspace</p>
-              <h2 className="mt-1 text-2xl font-semibold text-white">IntelliText</h2>
+              <p className="text-xs uppercase tracking-[0.3em] text-[rgb(var(--muted))]">
+                Local AI workspace
+              </p>
+              <h2 className="mt-1 text-2xl font-semibold">IntelliText</h2>
             </div>
-            <div className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-xs text-white/70">
-              {accentText}
+
+            <div className="flex items-center gap-3">
+              <div className="rounded-full border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] px-4 py-2 text-xs text-[rgb(var(--muted))]">
+                {accentText}
+              </div>
+              <button
+                type="button"
+                onClick={() => setTheme((current) => (current === "dark" ? "light" : "dark"))}
+                className="inline-flex items-center gap-2 rounded-full border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] px-4 py-2 text-xs font-medium text-[rgb(var(--text))] transition hover:scale-[1.01]"
+                aria-label="Toggle theme"
+              >
+                {theme === "dark" ? <SunMedium className="h-4 w-4" /> : <MoonStar className="h-4 w-4" />}
+                {theme === "dark" ? "Light mode" : "Dark mode"}
+              </button>
             </div>
           </header>
 
           {thinkingText && (
-            <div className="border-b border-white/8 bg-black/15 px-6 py-3 text-xs text-white/55">
+            <div className="border-b border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))]/50 px-6 py-3 text-xs text-[rgb(var(--muted))]">
               <details className="group">
-                <summary className="cursor-pointer list-none font-medium text-white/65">
+                <summary className="cursor-pointer list-none font-medium text-[rgb(var(--text))]">
                   Model thinking
                 </summary>
-                <div className="mt-2 whitespace-pre-wrap rounded-2xl border border-white/8 bg-black/25 p-3 leading-6 text-white/50">
+                <div className="mt-2 whitespace-pre-wrap rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel))] p-3 leading-6 text-[rgb(var(--muted))]">
                   {thinkingText}
                 </div>
               </details>
@@ -387,12 +421,39 @@ export default function Page() {
                     className={clsx(
                       "max-w-[80%] rounded-[1.75rem] border px-5 py-4 text-sm leading-7 shadow-lg",
                       message.role === "user"
-                        ? "border-[#5a6cff]/30 bg-[#5a6cff] text-white"
-                        : "border-white/10 bg-white/8 text-white/90",
+                        ? "border-[rgb(var(--accent))] bg-[rgb(var(--accent))] text-white"
+                        : "border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] text-[rgb(var(--text))]",
                     )}
                   >
                     {message.role === "assistant" ? (
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          code({ className, children, ...props }) {
+                            return (
+                              <code
+                                className={clsx(
+                                  "rounded-md border border-[rgb(var(--border))] bg-[rgb(var(--panel))] px-1.5 py-0.5 text-[0.92em]",
+                                  className,
+                                )}
+                                {...props}
+                              >
+                                {children}
+                              </code>
+                            );
+                          },
+                          pre({ children, ...props }) {
+                            return (
+                              <pre
+                                className="overflow-x-auto rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel))] p-4 text-sm"
+                                {...props}
+                              >
+                                {children}
+                              </pre>
+                            );
+                          },
+                        }}
+                      >
                         {message.content}
                       </ReactMarkdown>
                     ) : (
@@ -404,22 +465,25 @@ export default function Page() {
             </div>
           </div>
 
-          <footer className="border-t border-white/8 p-4">
-            <div className="rounded-[1.75rem] border border-white/10 bg-black/30 p-3">
+          <footer className="border-t border-[rgb(var(--border))] p-4">
+            <div className="rounded-[1.75rem] border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
               <textarea
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
                 placeholder="Ask IntelliText anything..."
-                className="min-h-[92px] w-full resize-none bg-transparent px-2 py-2 text-sm text-white outline-none placeholder:text-white/35"
+                className="min-h-[92px] w-full resize-none bg-transparent px-2 py-2 text-sm text-[rgb(var(--text))] outline-none placeholder:text-[rgb(var(--muted))]"
               />
               <div className="mt-3 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2 text-xs text-white/45">
+                <div className="flex items-center gap-2 text-xs text-[rgb(var(--muted))]">
                   <Bot className="h-4 w-4" />
                   Ollama-powered local chat
+                  <span className="rounded-full border border-[rgb(var(--border))] px-2 py-0.5 text-[10px] uppercase tracking-[0.25em]">
+                    {activeModel}
+                  </span>
                 </div>
                 <button
                   onClick={sendMessage}
-                  className="inline-flex items-center gap-2 rounded-2xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-2xl bg-[rgb(var(--text))] px-4 py-2.5 text-sm font-semibold text-[rgb(var(--bg))] transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50"
                   disabled={isSending || input.trim().length === 0}
                 >
                   Send
