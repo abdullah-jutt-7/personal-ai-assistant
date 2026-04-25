@@ -274,6 +274,7 @@ Repo status:
 - The active Ollama model can now be viewed and changed from the sidebar settings card.
 - The sidebar model picker can now refresh from the installed Ollama model list.
 - The UI theme can now be loaded from and saved to local settings.
+- The app should still boot its UI even if the Ollama model inventory endpoint is temporarily unavailable.
 - This file now defines the working direction.
 
 Immediate next step:

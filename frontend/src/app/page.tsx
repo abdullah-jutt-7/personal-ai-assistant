@@ -138,23 +138,31 @@ export default function Page() {
 
   async function bootstrap() {
     try {
-      const [healthRes, convRes, datasetRes, memoryRes, modelsRes] = await Promise.all([
+      const [healthRes, convRes, datasetRes, memoryRes, themeRes, modelRes] = await Promise.all([
         fetch(`${apiBaseUrl}/api/health`),
         fetch(`${apiBaseUrl}/api/conversations`),
         fetch(`${apiBaseUrl}/api/datasets`),
         fetch(`${apiBaseUrl}/api/memory`),
-        fetch(`${apiBaseUrl}/api/models`),
+        fetch(`${apiBaseUrl}/api/settings/theme`),
+        fetch(`${apiBaseUrl}/api/settings/model`),
       ]);
-      const themeRes = await fetch(`${apiBaseUrl}/api/settings/theme`);
-      const modelRes = await fetch(`${apiBaseUrl}/api/settings/model`);
 
       const health = await healthRes.json();
       const convData = (await convRes.json()) as ConversationSummary[];
       const datasetData = (await datasetRes.json()) as DatasetSummary[];
       const memoryData = (await memoryRes.json()) as MemorySummary[];
-      const modelsData = (await modelsRes.json()) as InstalledModel[];
       const themeData = (await themeRes.json()) as ThemeSettings;
       const modelData = (await modelRes.json()) as ModelSettings;
+      let modelsData: InstalledModel[] = [];
+
+      try {
+        const modelsRes = await fetch(`${apiBaseUrl}/api/models`);
+        if (modelsRes.ok) {
+          modelsData = (await modelsRes.json()) as InstalledModel[];
+        }
+      } catch (error) {
+        console.error(error);
+      }
 
       setStatus(`${health.assistant} ready on local backend`);
       const nextModel = modelData.ollama_model ?? health.model ?? "qwen3:4b";
@@ -185,6 +193,7 @@ export default function Page() {
     } catch {
       setStatus("Backend not connected yet");
       setConversations([]);
+      setInstalledModels([]);
     }
   }
 
