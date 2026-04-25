@@ -1,14 +1,14 @@
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import clsx from "clsx";
 
-import type { ChatMessage } from "@/lib/chat-types";
+import { MarkdownContent } from "@/components/markdown-content";
+import type { ChatMessage, Theme } from "@/lib/chat-types";
 
 type MessageListProps = {
   messages: ChatMessage[];
+  theme: Theme;
 };
 
-export function MessageList({ messages }: MessageListProps) {
+export function MessageList({ messages, theme }: MessageListProps) {
   return (
     <div className="space-y-4">
       {messages.map((message, index) => (
@@ -25,38 +25,7 @@ export function MessageList({ messages }: MessageListProps) {
             )}
           >
             {message.role === "assistant" ? (
-              <div className="app-markdown">
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  components={{
-                    code({ className, children, ...props }) {
-                      return (
-                        <code
-                          className={clsx(
-                            "rounded-md border border-[rgb(var(--border))] bg-[rgb(var(--panel))] px-1.5 py-0.5 text-[0.92em]",
-                            className,
-                          )}
-                          {...props}
-                        >
-                          {children}
-                        </code>
-                      );
-                    },
-                    pre({ children, ...props }) {
-                      return (
-                        <pre
-                          className="overflow-x-auto rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel))] p-4 text-sm"
-                          {...props}
-                        >
-                          {children}
-                        </pre>
-                      );
-                    },
-                  }}
-                >
-                  {message.content}
-                </ReactMarkdown>
-              </div>
+              <MarkdownContent content={message.content} theme={theme} />
             ) : (
               <p className="whitespace-pre-wrap">{message.content}</p>
             )}
@@ -66,4 +35,3 @@ export function MessageList({ messages }: MessageListProps) {
     </div>
   );
 }
-

@@ -103,9 +103,12 @@ Requirements:
 - On viewports narrower than 980px, the sidebar should collapse into a drawer/overlay pattern so the chat area stays usable.
 - Sidebar for chats, memory, and settings.
 - Chat area must feel fast and uncluttered.
+- The document itself must not scroll during normal chat use; the conversation pane owns the scroll area.
+- The composer must send on Enter and allow Shift+Enter for line breaks.
 - User memory upload should be easy to find and easy to understand.
 - Include a clear model/status area in the header.
 - For the final-year demo, support an expandable reasoning/thinking view so we can show what the model is doing without cluttering the main chat.
+- Assistant responses should render rich markdown with styled headings, paragraphs, lists, inline code, tables, and highlighted code blocks.
 - Support both dark mode and light mode from the start.
 - Include a theme toggle that remembers the user's preference locally.
 - Stream assistant responses live into the chat bubble instead of waiting for the full completion.
@@ -206,6 +209,9 @@ We will implement the project in stages.
 - [ ] Add startup and tray behavior if desired.
 - [x] Add full-screen responsive shell that fills the viewport and scales on larger displays.
 - [x] Add compact sidebar breakpoint behavior for narrower screens.
+- [x] Keep chat scrolling inside the conversation pane instead of scrolling the whole page.
+- [x] Support Enter-to-send in the composer.
+- [x] Render assistant markdown with richer typography and syntax-highlighted code blocks.
 
 ## Working Rules
 
@@ -229,6 +235,8 @@ Repo status:
 - Full-screen responsive layout scaling is now implemented.
 - Compact sidebar drawer behavior on small screens is now implemented.
 - Frontend is now split into reusable feature components for sidebar, header, message list, composer, and thinking panel.
+- Chat scrolling is now constrained to the conversation pane, and Enter-to-send is supported.
+- Assistant responses now render richer markdown and styled code blocks.
 - This file now defines the working direction.
 
 Immediate next step:

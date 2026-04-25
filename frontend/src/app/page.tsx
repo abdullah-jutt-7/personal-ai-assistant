@@ -330,7 +330,7 @@ export default function Page() {
 
   return (
     <main
-      className="app-shell min-h-screen text-[rgb(var(--text))]"
+      className="app-shell h-dvh overflow-hidden text-[rgb(var(--text))]"
       style={{ fontSize: "clamp(14px, 0.28vw + 10.5px, 18px)" }}
     >
       {isCompactViewport && sidebarOpen && (
@@ -342,7 +342,7 @@ export default function Page() {
         />
       )}
       <div
-        className="flex min-h-screen w-full gap-[clamp(10px,1vw,22px)]"
+        className="flex h-full min-h-0 w-full gap-[clamp(10px,1vw,22px)]"
         style={{ padding: "clamp(8px, 0.75vw, 20px)" }}
       >
         <AppSidebar
@@ -357,7 +357,7 @@ export default function Page() {
           onMemoryUpload={onMemoryUpload}
         />
 
-        <section className="app-panel flex min-w-0 flex-1 flex-col rounded-[2rem]">
+        <section className="app-panel flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[2rem]">
           <ChatHeader
             accentText={accentText}
             activeModel={activeModel}
@@ -369,8 +369,8 @@ export default function Page() {
 
           <ThinkingPanel thinkingText={thinkingText} />
 
-          <div className="flex-1 overflow-auto px-[clamp(16px,1.3vw,28px)] py-[clamp(16px,1.3vw,28px)]">
-            <MessageList messages={messages} />
+          <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-[clamp(16px,1.3vw,28px)] py-[clamp(16px,1.3vw,28px)]">
+          <MessageList messages={messages} theme={theme} />
           </div>
 
           <Composer
