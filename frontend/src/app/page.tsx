@@ -7,7 +7,7 @@ import { ChatHeader } from "@/components/chat-header";
 import { Composer } from "@/components/composer";
 import { MessageList } from "@/components/message-list";
 import { ThinkingPanel } from "@/components/thinking-panel";
-import type { ChatMessage, ConversationSummary, Theme } from "@/lib/chat-types";
+import type { ChatMessage, ConversationSummary, DatasetSummary, Theme } from "@/lib/chat-types";
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8000";
 const themeStorageKey = "personalaiasisstant-theme";
@@ -36,12 +36,14 @@ export default function Page() {
   const [isSending, setIsSending] = useState(false);
   const [status, setStatus] = useState("Checking local backend...");
   const [memoryFileName, setMemoryFileName] = useState<string | null>(null);
+  const [datasetFileName, setDatasetFileName] = useState<string | null>(null);
   const [thinkingText, setThinkingText] = useState("");
   const [theme, setTheme] = useState<Theme>("dark");
   const [activeModel, setActiveModel] = useState("qwen3:4b");
   const [isCompactViewport, setIsCompactViewport] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
+  const [datasets, setDatasets] = useState<DatasetSummary[]>([]);
 
   useEffect(() => {
     const storedTheme = window.localStorage.getItem(themeStorageKey) as Theme | null;
@@ -111,17 +113,20 @@ export default function Page() {
 
   async function bootstrap() {
     try {
-      const [healthRes, convRes] = await Promise.all([
+      const [healthRes, convRes, datasetRes] = await Promise.all([
         fetch(`${apiBaseUrl}/api/health`),
         fetch(`${apiBaseUrl}/api/conversations`),
+        fetch(`${apiBaseUrl}/api/datasets`),
       ]);
 
       const health = await healthRes.json();
       const convData = (await convRes.json()) as ConversationSummary[];
+      const datasetData = (await datasetRes.json()) as DatasetSummary[];
 
       setStatus(`${health.assistant} ready on local backend`);
       setActiveModel(health.model ?? "qwen3:4b");
       setConversations(convData);
+      setDatasets(datasetData);
 
       if (convData.length > 0) {
         const first = convData[0];
@@ -334,6 +339,43 @@ export default function Page() {
     }
   }
 
+  async function onDatasetUpload(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch(`${apiBaseUrl}/api/datasets/upload`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        throw new Error(`Upload failed with status ${res.status}`);
+      }
+
+      const data = (await res.json()) as {
+        success: boolean;
+        name: string;
+        source_name: string;
+      };
+
+      if (data.success) {
+        setDatasetFileName(`${data.name} (${data.source_name})`);
+        const refresh = await fetch(`${apiBaseUrl}/api/datasets`);
+        if (refresh.ok) {
+          setDatasets((await refresh.json()) as DatasetSummary[]);
+        }
+        if (isCompactViewport) setSidebarOpen(false);
+      }
+    } catch (error) {
+      console.error(error);
+      setDatasetFileName("Upload failed");
+    }
+  }
+
   const accentText = useMemo(
     () => (isSending ? "IntelliText is thinking..." : status),
     [isSending, status],
@@ -358,14 +400,17 @@ export default function Page() {
       >
         <AppSidebar
           conversations={conversations}
+          datasets={datasets}
           activeConversationId={activeConversationId}
           memoryFileName={memoryFileName}
+          datasetFileName={datasetFileName}
           isCompactViewport={isCompactViewport}
           sidebarOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
           onNewConversation={startNewConversation}
           onSelectConversation={loadConversation}
           onMemoryUpload={onMemoryUpload}
+          onDatasetUpload={onDatasetUpload}
         />
 
         <section className="app-panel flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[2rem]">
@@ -384,7 +429,7 @@ export default function Page() {
             ref={chatScrollRef}
             className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-[clamp(16px,1.3vw,28px)] py-[clamp(16px,1.3vw,28px)]"
           >
-          <MessageList messages={messages} theme={theme} />
+            <MessageList messages={messages} theme={theme} />
           </div>
 
           <Composer

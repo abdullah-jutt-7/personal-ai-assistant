@@ -85,6 +85,7 @@ Dataset flow:
 - Support dataset import, export, and versioning later if needed.
 - Keep datasets separate from runtime chat history and user memory.
 - Design the data model so future fine-tuning or retrieval workflows can use the same stored sources.
+- Dataset imports should create local files, metadata rows, and a visible dataset list in the UI.
 
 ## Interface Requirements
 
@@ -191,8 +192,8 @@ We will implement the project in stages.
 - [x] Inject memory into prompts.
 
 ### Stage 2b - Datasets
-- [ ] Define local dataset storage structure.
-- [ ] Add dataset import and metadata tracking.
+- [x] Define local dataset storage structure.
+- [x] Add dataset import and metadata tracking.
 - [ ] Support dataset versioning groundwork.
 - [ ] Prepare dataset flow for future training or retrieval use.
 
@@ -215,6 +216,7 @@ We will implement the project in stages.
 - [x] Support Enter-to-send in the composer.
 - [x] Render assistant markdown with richer typography and syntax-highlighted code blocks.
 - [x] Auto-scroll the conversation pane to the latest message during normal chat flow.
+- [x] Add a visible local dataset import/list flow in the sidebar.
 
 ## Working Rules
 
@@ -242,6 +244,7 @@ Repo status:
 - Assistant responses now render richer markdown and styled code blocks.
 - The conversation pane now auto-scrolls to the latest message during normal chat flow.
 - Uploaded memory now influences future prompts through a bounded local-memory system prompt section.
+- Local dataset imports now create stored files and metadata entries, with a sidebar list of imported datasets.
 - This file now defines the working direction.
 
 Immediate next step:

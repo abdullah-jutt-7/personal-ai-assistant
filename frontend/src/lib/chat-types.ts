@@ -12,3 +12,11 @@ export type ChatMessage = {
 
 export type Theme = "dark" | "light";
 
+export type DatasetSummary = {
+  id: number;
+  name: string;
+  description: string;
+  updated_at: string;
+  source_count: number;
+  version_count: number;
+};

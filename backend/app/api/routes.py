@@ -1,20 +1,31 @@
 from datetime import datetime
 import json
+from pathlib import Path
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
-from sqlalchemy import select, desc
+from sqlalchemy import select, desc, func
 from sqlalchemy.orm import Session
 
 from backend.app.db.session import get_db
 from backend.app.core.config import settings
-from backend.app.models.entities import Conversation, Message, MemoryChunk, MemorySource
+from backend.app.models.entities import (
+    Conversation,
+    Dataset,
+    DatasetSource,
+    DatasetVersion,
+    Message,
+    MemoryChunk,
+    MemorySource,
+)
 from backend.app.schemas.chat import (
     ChatRequest,
     ChatResponse,
     ConversationMessage,
     ConversationSummary,
 )
+from backend.app.schemas.datasets import DatasetImportResponse, DatasetSummary
+from backend.app.services.dataset_store import hash_content, save_dataset_file
 from backend.app.services.memory_context import build_memory_context
 from backend.app.services.ollama_client import generate_reply, stream_reply
 
@@ -83,6 +94,32 @@ def get_conversation(conversation_id: int, db: Session = Depends(get_db)):
         )
         for message in messages
     ]
+
+
+@router.get("/datasets", response_model=list[DatasetSummary])
+def list_datasets(db: Session = Depends(get_db)):
+    datasets = db.scalars(select(Dataset).order_by(desc(Dataset.updated_at))).all()
+
+    result: list[DatasetSummary] = []
+    for dataset in datasets:
+        source_count = db.scalar(
+            select(func.count()).select_from(DatasetSource).where(DatasetSource.dataset_id == dataset.id)
+        )
+        version_count = db.scalar(
+            select(func.count()).select_from(DatasetVersion).where(DatasetVersion.dataset_id == dataset.id)
+        )
+        result.append(
+            DatasetSummary(
+                id=dataset.id,
+                name=dataset.name,
+                description=dataset.description,
+                updated_at=dataset.updated_at.isoformat(),
+                source_count=source_count or 0,
+                version_count=version_count or 0,
+            )
+        )
+
+    return result
 
 
 @router.post("/chat", response_model=ChatResponse)
@@ -280,3 +317,49 @@ async def upload_memory(
         "name": source.name,
         "chunk_count": len(chunks),
     }
+
+
+@router.post("/datasets/upload", response_model=DatasetImportResponse)
+async def upload_dataset(
+    file: UploadFile = File(...),
+    name: str = Form(default=""),
+    description: str = Form(default=""),
+    db: Session = Depends(get_db),
+):
+    raw = await file.read()
+
+    if not raw:
+        raise HTTPException(status_code=400, detail="Dataset file is empty.")
+
+    dataset_name = name.strip() or Path(file.filename or "dataset").stem or "dataset"
+    dataset = Dataset(name=dataset_name, description=description.strip())
+    db.add(dataset)
+    db.commit()
+    db.refresh(dataset)
+
+    saved_path = save_dataset_file(dataset.id, file.filename or dataset_name, raw)
+    content_hash = hash_content(raw)
+
+    source = DatasetSource(
+        dataset_id=dataset.id,
+        file_name=file.filename or dataset_name,
+        file_path=str(saved_path),
+        content_hash=content_hash,
+    )
+    db.add(source)
+
+    version = DatasetVersion(
+        dataset_id=dataset.id,
+        version_label="v1",
+        notes="Initial local dataset import",
+    )
+    db.add(version)
+    db.commit()
+
+    return DatasetImportResponse(
+        success=True,
+        dataset_id=dataset.id,
+        name=dataset.name,
+        source_name=source.file_name,
+        version_label=version.version_label,
+    )

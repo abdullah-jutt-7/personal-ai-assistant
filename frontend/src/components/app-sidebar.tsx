@@ -1,30 +1,36 @@
 import type { ChangeEvent } from "react";
 import { FileText, LibraryBig, Plus, Sparkles, X } from "lucide-react";
 
-import type { ConversationSummary } from "@/lib/chat-types";
+import type { ConversationSummary, DatasetSummary } from "@/lib/chat-types";
 
 type SidebarProps = {
   conversations: ConversationSummary[];
+  datasets: DatasetSummary[];
   activeConversationId: number | null;
   memoryFileName: string | null;
+  datasetFileName: string | null;
   isCompactViewport: boolean;
   sidebarOpen: boolean;
   onClose: () => void;
   onNewConversation: () => void;
   onSelectConversation: (conversationId: number) => void;
   onMemoryUpload: (event: ChangeEvent<HTMLInputElement>) => void;
+  onDatasetUpload: (event: ChangeEvent<HTMLInputElement>) => void;
 };
 
 export function AppSidebar({
   conversations,
+  datasets,
   activeConversationId,
   memoryFileName,
+  datasetFileName,
   isCompactViewport,
   sidebarOpen,
   onClose,
   onNewConversation,
   onSelectConversation,
   onMemoryUpload,
+  onDatasetUpload,
 }: SidebarProps) {
   return (
     <aside
@@ -115,6 +121,56 @@ export function AppSidebar({
           >
             Ready to store: {memoryFileName}
           </p>
+        )}
+      </div>
+
+      <div className="mt-4 space-y-3 rounded-3xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-4">
+        <div className="flex items-center gap-2 text-sm font-semibold">
+          <LibraryBig className="h-4 w-4" />
+          Dataset import
+        </div>
+        <label className="flex cursor-pointer items-center justify-center rounded-2xl border border-dashed border-[rgb(var(--border))] bg-transparent px-4 py-4 text-sm text-[rgb(var(--muted))] transition hover:bg-[rgb(var(--panel))]">
+          <input type="file" accept=".txt,.csv,.json,.jsonl" className="hidden" onChange={onDatasetUpload} />
+          Upload dataset file
+        </label>
+        <p className="text-xs leading-5 text-[rgb(var(--muted))]">
+          Datasets are stored locally and tracked separately from chat memory.
+        </p>
+        {datasetFileName && (
+          <p
+            className="rounded-xl px-3 py-2 text-xs text-[rgb(var(--text))]"
+            style={{ backgroundColor: "rgb(var(--accent) / 0.12)" }}
+          >
+            Last imported: {datasetFileName}
+          </p>
+        )}
+        {datasets.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
+              Local datasets
+            </p>
+            <div className="max-h-[180px] space-y-2 overflow-auto pr-1">
+              {datasets.map((dataset) => (
+                <div
+                  key={dataset.id}
+                  className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel))] px-3 py-2"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-medium">{dataset.name}</p>
+                      <p className="mt-1 text-xs text-[rgb(var(--muted))]">
+                        {dataset.source_count} source{dataset.source_count === 1 ? "" : "s"} ·{" "}
+                        {dataset.version_count} version{dataset.version_count === 1 ? "" : "s"}
+                      </p>
+                    </div>
+                    <span className="rounded-full border border-[rgb(var(--border))] px-2 py-1 text-[10px] uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
+                      Saved
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
       </div>
     </aside>
