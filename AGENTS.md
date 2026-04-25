@@ -87,6 +87,7 @@ Dataset flow:
 - Design the data model so future fine-tuning or retrieval workflows can use the same stored sources.
 - Dataset imports should create local files, metadata rows, and a visible dataset list in the UI.
 - Dataset chunks should be used as bounded prompt-time context when relevant.
+- Dataset management UI should support removing imported datasets and cleaning up their stored files.
 
 ## Interface Requirements
 
@@ -197,6 +198,7 @@ We will implement the project in stages.
 - [x] Add dataset import and metadata tracking.
 - [x] Support dataset versioning groundwork.
 - [x] Prepare dataset flow for future training or retrieval use.
+- [x] Add dataset delete/cleanup workflow.
 
 ### Stage 3 - Installer
 - [ ] Bundle app runtime.
@@ -219,6 +221,7 @@ We will implement the project in stages.
 - [x] Auto-scroll the conversation pane to the latest message during normal chat flow.
 - [x] Add a visible local dataset import/list flow in the sidebar.
 - [x] Use dataset chunks as bounded prompt-time context.
+- [x] Add delete controls for imported datasets.
 
 ## Working Rules
 
@@ -248,6 +251,7 @@ Repo status:
 - Uploaded memory now influences future prompts through a bounded local-memory system prompt section.
 - Local dataset imports now create stored files and metadata entries, with a sidebar list of imported datasets.
 - Imported datasets now contribute bounded prompt-time context chunks alongside memory.
+- Imported datasets can now be deleted from the sidebar, which also cleans up their local storage folder.
 - This file now defines the working direction.
 
 Immediate next step:

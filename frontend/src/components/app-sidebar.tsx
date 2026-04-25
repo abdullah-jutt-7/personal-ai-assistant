@@ -1,5 +1,5 @@
 import type { ChangeEvent } from "react";
-import { FileText, LibraryBig, Plus, Sparkles, X } from "lucide-react";
+import { FileText, LibraryBig, Plus, Sparkles, Trash2, X } from "lucide-react";
 
 import type { ConversationSummary, DatasetSummary } from "@/lib/chat-types";
 
@@ -16,6 +16,7 @@ type SidebarProps = {
   onSelectConversation: (conversationId: number) => void;
   onMemoryUpload: (event: ChangeEvent<HTMLInputElement>) => void;
   onDatasetUpload: (event: ChangeEvent<HTMLInputElement>) => void;
+  onDeleteDataset: (datasetId: number) => void;
 };
 
 export function AppSidebar({
@@ -31,6 +32,7 @@ export function AppSidebar({
   onSelectConversation,
   onMemoryUpload,
   onDatasetUpload,
+  onDeleteDataset,
 }: SidebarProps) {
   return (
     <aside
@@ -164,9 +166,14 @@ export function AppSidebar({
                         {dataset.chunk_count} chunk{dataset.chunk_count === 1 ? "" : "s"}
                       </p>
                     </div>
-                    <span className="rounded-full border border-[rgb(var(--border))] px-2 py-1 text-[10px] uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
-                      Saved
-                    </span>
+                    <button
+                      type="button"
+                      onClick={() => onDeleteDataset(dataset.id)}
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] text-[rgb(var(--muted))] transition hover:text-[rgb(var(--text))]"
+                      aria-label={`Delete dataset ${dataset.name}`}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
                   </div>
                 </div>
               ))}

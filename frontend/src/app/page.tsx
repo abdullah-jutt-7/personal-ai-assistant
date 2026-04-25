@@ -377,6 +377,28 @@ export default function Page() {
     }
   }
 
+  async function deleteDataset(datasetId: number) {
+    const confirmed = window.confirm("Delete this dataset from local storage?");
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`${apiBaseUrl}/api/datasets/${datasetId}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        throw new Error(`Delete failed with status ${res.status}`);
+      }
+
+      const refresh = await fetch(`${apiBaseUrl}/api/datasets`);
+      if (refresh.ok) {
+        setDatasets((await refresh.json()) as DatasetSummary[]);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   const accentText = useMemo(
     () => (isSending ? "IntelliText is thinking..." : status),
     [isSending, status],
@@ -412,6 +434,7 @@ export default function Page() {
           onSelectConversation={loadConversation}
           onMemoryUpload={onMemoryUpload}
           onDatasetUpload={onDatasetUpload}
+          onDeleteDataset={deleteDataset}
         />
 
         <section className="app-panel flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[2rem]">

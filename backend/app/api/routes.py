@@ -27,7 +27,7 @@ from backend.app.schemas.chat import (
 )
 from backend.app.schemas.datasets import DatasetImportResponse, DatasetSummary
 from backend.app.services.dataset_context import build_dataset_context
-from backend.app.services.dataset_store import hash_content, save_dataset_file
+from backend.app.services.dataset_store import delete_dataset_folder, hash_content, save_dataset_file
 from backend.app.services.memory_context import build_memory_context
 from backend.app.services.ollama_client import generate_reply, stream_reply
 
@@ -403,3 +403,16 @@ async def upload_dataset(
         version_label=version.version_label,
         chunk_count=len(chunks),
     )
+
+
+@router.delete("/datasets/{dataset_id}")
+def delete_dataset(dataset_id: int, db: Session = Depends(get_db)):
+    dataset = db.get(Dataset, dataset_id)
+    if dataset is None:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+
+    delete_dataset_folder(dataset_id)
+    db.delete(dataset)
+    db.commit()
+
+    return {"success": True, "dataset_id": dataset_id}
