@@ -21,3 +21,31 @@ export type DatasetSummary = {
   version_count: number;
   chunk_count: number;
 };
+
+export type DatasetSource = {
+  id: number;
+  file_name: string;
+  file_path: string;
+  content_hash: string;
+  created_at: string;
+};
+
+export type DatasetVersion = {
+  id: number;
+  version_label: string;
+  notes: string;
+  created_at: string;
+};
+
+export type DatasetChunk = {
+  id: number;
+  source_id: number;
+  chunk_index: number;
+  chunk_text: string;
+};
+
+export type DatasetDetail = DatasetSummary & {
+  sources: DatasetSource[];
+  versions: DatasetVersion[];
+  chunks: DatasetChunk[];
+};

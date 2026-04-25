@@ -88,6 +88,7 @@ Dataset flow:
 - Dataset imports should create local files, metadata rows, and a visible dataset list in the UI.
 - Dataset chunks should be used as bounded prompt-time context when relevant.
 - Dataset management UI should support removing imported datasets and cleaning up their stored files.
+- Dataset management UI should also support a read-only details view with sources, versions, and chunk previews.
 
 ## Interface Requirements
 
@@ -199,6 +200,7 @@ We will implement the project in stages.
 - [x] Support dataset versioning groundwork.
 - [x] Prepare dataset flow for future training or retrieval use.
 - [x] Add dataset delete/cleanup workflow.
+- [x] Add dataset details inspection flow.
 
 ### Stage 3 - Installer
 - [ ] Bundle app runtime.
@@ -222,6 +224,7 @@ We will implement the project in stages.
 - [x] Add a visible local dataset import/list flow in the sidebar.
 - [x] Use dataset chunks as bounded prompt-time context.
 - [x] Add delete controls for imported datasets.
+- [x] Add dataset details panel for inspection.
 
 ## Working Rules
 
@@ -252,6 +255,7 @@ Repo status:
 - Local dataset imports now create stored files and metadata entries, with a sidebar list of imported datasets.
 - Imported datasets now contribute bounded prompt-time context chunks alongside memory.
 - Imported datasets can now be deleted from the sidebar, which also cleans up their local storage folder.
+- Imported datasets can now be inspected through a details panel showing sources, versions, and chunk previews.
 - This file now defines the working direction.
 
 Immediate next step:

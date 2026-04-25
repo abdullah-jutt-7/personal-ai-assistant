@@ -17,6 +17,7 @@ type SidebarProps = {
   onMemoryUpload: (event: ChangeEvent<HTMLInputElement>) => void;
   onDatasetUpload: (event: ChangeEvent<HTMLInputElement>) => void;
   onDeleteDataset: (datasetId: number) => void;
+  onSelectDataset: (datasetId: number) => void;
 };
 
 export function AppSidebar({
@@ -33,6 +34,7 @@ export function AppSidebar({
   onMemoryUpload,
   onDatasetUpload,
   onDeleteDataset,
+  onSelectDataset,
 }: SidebarProps) {
   return (
     <aside
@@ -155,7 +157,16 @@ export function AppSidebar({
               {datasets.map((dataset) => (
                 <div
                   key={dataset.id}
-                  className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel))] px-3 py-2"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => onSelectDataset(dataset.id)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      onSelectDataset(dataset.id);
+                    }
+                  }}
+                  className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel))] px-3 py-2 text-left transition hover:bg-[rgb(var(--panel-soft))]"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -168,7 +179,10 @@ export function AppSidebar({
                     </div>
                     <button
                       type="button"
-                      onClick={() => onDeleteDataset(dataset.id)}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onDeleteDataset(dataset.id);
+                      }}
                       className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] text-[rgb(var(--muted))] transition hover:text-[rgb(var(--text))]"
                       aria-label={`Delete dataset ${dataset.name}`}
                     >

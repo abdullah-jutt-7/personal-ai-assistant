@@ -7,7 +7,13 @@ import { ChatHeader } from "@/components/chat-header";
 import { Composer } from "@/components/composer";
 import { MessageList } from "@/components/message-list";
 import { ThinkingPanel } from "@/components/thinking-panel";
-import type { ChatMessage, ConversationSummary, DatasetSummary, Theme } from "@/lib/chat-types";
+import type {
+  ChatMessage,
+  ConversationSummary,
+  DatasetDetail,
+  DatasetSummary,
+  Theme,
+} from "@/lib/chat-types";
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8000";
 const themeStorageKey = "personalaiasisstant-theme";
@@ -44,6 +50,7 @@ export default function Page() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
   const [datasets, setDatasets] = useState<DatasetSummary[]>([]);
+  const [selectedDataset, setSelectedDataset] = useState<DatasetDetail | null>(null);
 
   useEffect(() => {
     const storedTheme = window.localStorage.getItem(themeStorageKey) as Theme | null;
@@ -394,6 +401,20 @@ export default function Page() {
       if (refresh.ok) {
         setDatasets((await refresh.json()) as DatasetSummary[]);
       }
+      if (selectedDataset?.id === datasetId) {
+        setSelectedDataset(null);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async function openDatasetDetails(datasetId: number) {
+    try {
+      const res = await fetch(`${apiBaseUrl}/api/datasets/${datasetId}`);
+      if (!res.ok) return;
+      setSelectedDataset((await res.json()) as DatasetDetail);
+      if (isCompactViewport) setSidebarOpen(false);
     } catch (error) {
       console.error(error);
     }
@@ -435,6 +456,7 @@ export default function Page() {
           onMemoryUpload={onMemoryUpload}
           onDatasetUpload={onDatasetUpload}
           onDeleteDataset={deleteDataset}
+          onSelectDataset={openDatasetDetails}
         />
 
         <section className="app-panel flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[2rem]">
@@ -464,6 +486,78 @@ export default function Page() {
             onSend={sendMessage}
           />
         </section>
+
+        {selectedDataset && (
+          <aside className="app-panel hidden min-h-0 w-[clamp(280px,20vw,360px)] flex-col overflow-hidden rounded-[2rem] xl:flex">
+            <div className="border-b border-[rgb(var(--border))] px-[clamp(16px,1.1vw,24px)] py-[clamp(14px,1vw,18px)]">
+              <p className="text-xs uppercase tracking-[0.3em] text-[rgb(var(--muted))]">Dataset details</p>
+              <h3 className="mt-1 text-xl font-semibold">{selectedDataset.name}</h3>
+              <p className="mt-2 text-sm leading-6 text-[rgb(var(--muted))]">
+                {selectedDataset.description || "No description provided."}
+              </p>
+            </div>
+            <div className="min-h-0 flex-1 overflow-auto px-[clamp(16px,1.1vw,24px)] py-[clamp(14px,1vw,18px)]">
+              <div className="space-y-4 text-sm">
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
+                    <p className="text-[10px] uppercase tracking-[0.24em] text-[rgb(var(--muted))]">Sources</p>
+                    <p className="mt-1 text-lg font-semibold">{selectedDataset.source_count}</p>
+                  </div>
+                  <div className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
+                    <p className="text-[10px] uppercase tracking-[0.24em] text-[rgb(var(--muted))]">Versions</p>
+                    <p className="mt-1 text-lg font-semibold">{selectedDataset.version_count}</p>
+                  </div>
+                  <div className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
+                    <p className="text-[10px] uppercase tracking-[0.24em] text-[rgb(var(--muted))]">Chunks</p>
+                    <p className="mt-1 text-lg font-semibold">{selectedDataset.chunk_count}</p>
+                  </div>
+                </div>
+
+                <section className="space-y-2">
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
+                    Sources
+                  </p>
+                  {selectedDataset.sources.map((source) => (
+                    <div key={source.id} className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
+                      <p className="font-medium">{source.file_name}</p>
+                      <p className="mt-1 break-all text-xs text-[rgb(var(--muted))]">{source.file_path}</p>
+                    </div>
+                  ))}
+                </section>
+
+                <section className="space-y-2">
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
+                    Versions
+                  </p>
+                  {selectedDataset.versions.map((version) => (
+                    <div key={version.id} className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
+                      <p className="font-medium">{version.version_label}</p>
+                      <p className="mt-1 text-xs text-[rgb(var(--muted))]">{version.notes || "No notes."}</p>
+                    </div>
+                  ))}
+                </section>
+
+                <section className="space-y-2">
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
+                    Chunk preview
+                  </p>
+                  <div className="space-y-2">
+                    {selectedDataset.chunks.slice(0, 5).map((chunk) => (
+                      <div key={chunk.id} className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
+                        <p className="mb-2 text-[10px] uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
+                          Chunk {chunk.chunk_index + 1}
+                        </p>
+                        <p className="whitespace-pre-wrap text-xs leading-6 text-[rgb(var(--text))]">
+                          {chunk.chunk_text}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              </div>
+            </div>
+          </aside>
+        )}
       </div>
     </main>
   );

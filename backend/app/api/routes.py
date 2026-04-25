@@ -26,6 +26,12 @@ from backend.app.schemas.chat import (
     ConversationSummary,
 )
 from backend.app.schemas.datasets import DatasetImportResponse, DatasetSummary
+from backend.app.schemas.datasets import (
+    DatasetChunkSummary,
+    DatasetDetailResponse,
+    DatasetSourceSummary,
+    DatasetVersionSummary,
+)
 from backend.app.services.dataset_context import build_dataset_context
 from backend.app.services.dataset_store import delete_dataset_folder, hash_content, save_dataset_file
 from backend.app.services.memory_context import build_memory_context
@@ -126,6 +132,61 @@ def list_datasets(db: Session = Depends(get_db)):
         )
 
     return result
+
+
+@router.get("/datasets/{dataset_id}", response_model=DatasetDetailResponse)
+def get_dataset(dataset_id: int, db: Session = Depends(get_db)):
+    dataset = db.get(Dataset, dataset_id)
+    if dataset is None:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+
+    sources = db.scalars(
+        select(DatasetSource).where(DatasetSource.dataset_id == dataset.id).order_by(DatasetSource.created_at.asc())
+    ).all()
+    versions = db.scalars(
+        select(DatasetVersion).where(DatasetVersion.dataset_id == dataset.id).order_by(DatasetVersion.created_at.asc())
+    ).all()
+    chunks = db.scalars(
+        select(DatasetChunk).where(DatasetChunk.dataset_id == dataset.id).order_by(DatasetChunk.chunk_index.asc())
+    ).all()
+
+    return DatasetDetailResponse(
+        id=dataset.id,
+        name=dataset.name,
+        description=dataset.description,
+        updated_at=dataset.updated_at.isoformat(),
+        source_count=len(sources),
+        version_count=len(versions),
+        chunk_count=len(chunks),
+        sources=[
+            DatasetSourceSummary(
+                id=source.id,
+                file_name=source.file_name,
+                file_path=source.file_path,
+                content_hash=source.content_hash,
+                created_at=source.created_at.isoformat(),
+            )
+            for source in sources
+        ],
+        versions=[
+            DatasetVersionSummary(
+                id=version.id,
+                version_label=version.version_label,
+                notes=version.notes,
+                created_at=version.created_at.isoformat(),
+            )
+            for version in versions
+        ],
+        chunks=[
+            DatasetChunkSummary(
+                id=chunk.id,
+                source_id=chunk.source_id,
+                chunk_index=chunk.chunk_index,
+                chunk_text=chunk.chunk_text,
+            )
+            for chunk in chunks
+        ],
+    )
 
 
 @router.post("/chat", response_model=ChatResponse)
