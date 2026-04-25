@@ -12,6 +12,7 @@ import type {
   ConversationSummary,
   DatasetDetail,
   DatasetSummary,
+  MemoryDetail,
   MemorySummary,
   Theme,
 } from "@/lib/chat-types";
@@ -45,6 +46,7 @@ export default function Page() {
   const [memoryFileName, setMemoryFileName] = useState<string | null>(null);
   const [datasetFileName, setDatasetFileName] = useState<string | null>(null);
   const [memorySources, setMemorySources] = useState<MemorySummary[]>([]);
+  const [selectedMemory, setSelectedMemory] = useState<MemoryDetail | null>(null);
   const [thinkingText, setThinkingText] = useState("");
   const [theme, setTheme] = useState<Theme>("dark");
   const [activeModel, setActiveModel] = useState("qwen3:4b");
@@ -139,6 +141,7 @@ export default function Page() {
       setConversations(convData);
       setDatasets(datasetData);
       setMemorySources(memoryData);
+      setSelectedMemory(null);
 
       if (convData.length > 0) {
         const first = convData[0];
@@ -435,6 +438,21 @@ export default function Page() {
       if (refresh.ok) {
         setMemorySources((await refresh.json()) as MemorySummary[]);
       }
+      if (selectedMemory?.id === memoryId) {
+        setSelectedMemory(null);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async function openMemoryDetails(memoryId: number) {
+    try {
+      const res = await fetch(`${apiBaseUrl}/api/memory/${memoryId}`);
+      if (!res.ok) return;
+      setSelectedMemory((await res.json()) as MemoryDetail);
+      setSelectedDataset(null);
+      if (isCompactViewport) setSidebarOpen(false);
     } catch (error) {
       console.error(error);
     }
@@ -445,6 +463,7 @@ export default function Page() {
       const res = await fetch(`${apiBaseUrl}/api/datasets/${datasetId}`);
       if (!res.ok) return;
       setSelectedDataset((await res.json()) as DatasetDetail);
+      setSelectedMemory(null);
       if (isCompactViewport) setSidebarOpen(false);
     } catch (error) {
       console.error(error);
@@ -487,6 +506,7 @@ export default function Page() {
           onSelectConversation={loadConversation}
           onMemoryUpload={onMemoryUpload}
           onDeleteMemory={deleteMemory}
+          onSelectMemory={openMemoryDetails}
           onDatasetUpload={onDatasetUpload}
           onDeleteDataset={deleteDataset}
           onSelectDataset={openDatasetDetails}
@@ -520,73 +540,124 @@ export default function Page() {
           />
         </section>
 
-        {selectedDataset && (
+        {(selectedDataset || selectedMemory) && (
           <aside className="app-panel hidden min-h-0 w-[clamp(280px,20vw,360px)] flex-col overflow-hidden rounded-[2rem] xl:flex">
             <div className="border-b border-[rgb(var(--border))] px-[clamp(16px,1.1vw,24px)] py-[clamp(14px,1vw,18px)]">
-              <p className="text-xs uppercase tracking-[0.3em] text-[rgb(var(--muted))]">Dataset details</p>
-              <h3 className="mt-1 text-xl font-semibold">{selectedDataset.name}</h3>
+              <p className="text-xs uppercase tracking-[0.3em] text-[rgb(var(--muted))]">
+                {selectedDataset ? "Dataset details" : "Memory details"}
+              </p>
+              <h3 className="mt-1 text-xl font-semibold">
+                {selectedDataset ? selectedDataset.name : selectedMemory?.name}
+              </h3>
               <p className="mt-2 text-sm leading-6 text-[rgb(var(--muted))]">
-                {selectedDataset.description || "No description provided."}
+                {selectedDataset
+                  ? selectedDataset.description || "No description provided."
+                  : selectedMemory?.original_filename || "No filename available."}
               </p>
             </div>
             <div className="min-h-0 flex-1 overflow-auto px-[clamp(16px,1.1vw,24px)] py-[clamp(14px,1vw,18px)]">
               <div className="space-y-4 text-sm">
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
-                    <p className="text-[10px] uppercase tracking-[0.24em] text-[rgb(var(--muted))]">Sources</p>
-                    <p className="mt-1 text-lg font-semibold">{selectedDataset.source_count}</p>
-                  </div>
-                  <div className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
-                    <p className="text-[10px] uppercase tracking-[0.24em] text-[rgb(var(--muted))]">Versions</p>
-                    <p className="mt-1 text-lg font-semibold">{selectedDataset.version_count}</p>
-                  </div>
-                  <div className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
-                    <p className="text-[10px] uppercase tracking-[0.24em] text-[rgb(var(--muted))]">Chunks</p>
-                    <p className="mt-1 text-lg font-semibold">{selectedDataset.chunk_count}</p>
-                  </div>
-                </div>
-
-                <section className="space-y-2">
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
-                    Sources
-                  </p>
-                  {selectedDataset.sources.map((source) => (
-                    <div key={source.id} className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
-                      <p className="font-medium">{source.file_name}</p>
-                      <p className="mt-1 break-all text-xs text-[rgb(var(--muted))]">{source.file_path}</p>
-                    </div>
-                  ))}
-                </section>
-
-                <section className="space-y-2">
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
-                    Versions
-                  </p>
-                  {selectedDataset.versions.map((version) => (
-                    <div key={version.id} className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
-                      <p className="font-medium">{version.version_label}</p>
-                      <p className="mt-1 text-xs text-[rgb(var(--muted))]">{version.notes || "No notes."}</p>
-                    </div>
-                  ))}
-                </section>
-
-                <section className="space-y-2">
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
-                    Chunk preview
-                  </p>
-                  <div className="space-y-2">
-                    {selectedDataset.chunks.slice(0, 5).map((chunk) => (
-                      <div key={chunk.id} className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
-                        <p className="mb-2 text-[10px] uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
-                          Chunk {chunk.chunk_index + 1}
-                        </p>
-                        <p className="whitespace-pre-wrap text-xs leading-6 text-[rgb(var(--text))]">
-                          {chunk.chunk_text}
-                        </p>
+                {selectedDataset ? (
+                  <>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
+                        <p className="text-[10px] uppercase tracking-[0.24em] text-[rgb(var(--muted))]">Sources</p>
+                        <p className="mt-1 text-lg font-semibold">{selectedDataset.source_count}</p>
                       </div>
-                    ))}
-                  </div>
-                </section>
+                      <div className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
+                        <p className="text-[10px] uppercase tracking-[0.24em] text-[rgb(var(--muted))]">Versions</p>
+                        <p className="mt-1 text-lg font-semibold">{selectedDataset.version_count}</p>
+                      </div>
+                      <div className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
+                        <p className="text-[10px] uppercase tracking-[0.24em] text-[rgb(var(--muted))]">Chunks</p>
+                        <p className="mt-1 text-lg font-semibold">{selectedDataset.chunk_count}</p>
+                      </div>
+                    </div>
+
+                    <section className="space-y-2">
+                      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
+                        Sources
+                      </p>
+                      {selectedDataset.sources.map((source) => (
+                        <div key={source.id} className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
+                          <p className="font-medium">{source.file_name}</p>
+                          <p className="mt-1 break-all text-xs text-[rgb(var(--muted))]">{source.file_path}</p>
+                        </div>
+                      ))}
+                    </section>
+
+                    <section className="space-y-2">
+                      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
+                        Versions
+                      </p>
+                      {selectedDataset.versions.map((version) => (
+                        <div key={version.id} className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
+                          <p className="font-medium">{version.version_label}</p>
+                          <p className="mt-1 text-xs text-[rgb(var(--muted))]">{version.notes || "No notes."}</p>
+                        </div>
+                      ))}
+                    </section>
+
+                    <section className="space-y-2">
+                      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
+                        Chunk preview
+                      </p>
+                      <div className="space-y-2">
+                        {selectedDataset.chunks.slice(0, 5).map((chunk) => (
+                          <div key={chunk.id} className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
+                            <p className="mb-2 text-[10px] uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
+                              Chunk {chunk.chunk_index + 1}
+                            </p>
+                            <p className="whitespace-pre-wrap text-xs leading-6 text-[rgb(var(--text))]">
+                              {chunk.chunk_text}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  </>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
+                        <p className="text-[10px] uppercase tracking-[0.24em] text-[rgb(var(--muted))]">Chunks</p>
+                        <p className="mt-1 text-lg font-semibold">{selectedMemory?.chunk_count}</p>
+                      </div>
+                      <div className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
+                        <p className="text-[10px] uppercase tracking-[0.24em] text-[rgb(var(--muted))]">Type</p>
+                        <p className="mt-1 text-lg font-semibold">{selectedMemory?.source_type}</p>
+                      </div>
+                    </div>
+
+                    <section className="space-y-2">
+                      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
+                        Original File
+                      </p>
+                      <div className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
+                        <p className="font-medium">{selectedMemory?.original_filename || "Unknown file"}</p>
+                        <p className="mt-1 text-xs text-[rgb(var(--muted))]">{selectedMemory?.content_text.length || 0} characters stored</p>
+                      </div>
+                    </section>
+
+                    <section className="space-y-2">
+                      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
+                        Memory preview
+                      </p>
+                      <div className="space-y-2">
+                        {selectedMemory?.chunks.map((chunk) => (
+                          <div key={chunk.id} className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] p-3">
+                            <p className="mb-2 text-[10px] uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
+                              Chunk {chunk.chunk_index + 1}
+                            </p>
+                            <p className="whitespace-pre-wrap text-xs leading-6 text-[rgb(var(--text))]">
+                              {chunk.chunk_text}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  </>
+                )}
               </div>
             </div>
           </aside>

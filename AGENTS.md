@@ -116,6 +116,7 @@ Requirements:
 - For the final-year demo, support an expandable reasoning/thinking view so we can show what the model is doing without cluttering the main chat.
 - Assistant responses should render rich markdown with styled headings, paragraphs, lists, inline code, tables, and highlighted code blocks.
 - Memory management UI should allow viewing and deleting uploaded memory sources.
+- Memory management UI should also support a read-only details view with chunks and file metadata.
 - Support both dark mode and light mode from the start.
 - Include a theme toggle that remembers the user's preference locally.
 - Stream assistant responses live into the chat bubble instead of waiting for the full completion.
@@ -227,6 +228,7 @@ We will implement the project in stages.
 - [x] Add delete controls for imported datasets.
 - [x] Add dataset details panel for inspection.
 - [x] Add memory source list and delete controls.
+- [x] Add memory details inspection flow.
 
 ## Working Rules
 
@@ -255,6 +257,7 @@ Repo status:
 - The conversation pane now auto-scrolls to the latest message during normal chat flow.
 - Uploaded memory now influences future prompts through a bounded local-memory system prompt section.
 - Uploaded memory sources can now be listed and deleted from the sidebar.
+- Uploaded memory sources can now be inspected through a details panel showing file metadata and chunk previews.
 - Local dataset imports now create stored files and metadata entries, with a sidebar list of imported datasets.
 - Imported datasets now contribute bounded prompt-time context chunks alongside memory.
 - Imported datasets can now be deleted from the sidebar, which also cleans up their local storage folder.

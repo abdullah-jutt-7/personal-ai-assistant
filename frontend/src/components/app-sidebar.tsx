@@ -20,6 +20,7 @@ type SidebarProps = {
   onDeleteDataset: (datasetId: number) => void;
   onSelectDataset: (datasetId: number) => void;
   onDeleteMemory: (memoryId: number) => void;
+  onSelectMemory: (memoryId: number) => void;
 };
 
 export function AppSidebar({
@@ -39,6 +40,7 @@ export function AppSidebar({
   onDeleteDataset,
   onSelectDataset,
   onDeleteMemory,
+  onSelectMemory,
 }: SidebarProps) {
   return (
     <aside
@@ -139,6 +141,15 @@ export function AppSidebar({
               {memories.map((memory) => (
                 <div
                   key={memory.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => onSelectMemory(memory.id)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      onSelectMemory(memory.id);
+                    }
+                  }}
                   className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel))] px-3 py-2"
                 >
                   <div className="flex items-start justify-between gap-3">

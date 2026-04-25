@@ -57,3 +57,15 @@ export type MemorySummary = {
   updated_at: string;
   chunk_count: number;
 };
+
+export type MemoryChunk = {
+  id: number;
+  chunk_index: number;
+  chunk_text: string;
+};
+
+export type MemoryDetail = MemorySummary & {
+  source_type: string;
+  content_text: string;
+  chunks: MemoryChunk[];
+};

@@ -32,7 +32,12 @@ from backend.app.schemas.datasets import (
     DatasetSourceSummary,
     DatasetVersionSummary,
 )
-from backend.app.schemas.memory import MemoryDeleteResponse, MemorySourceSummary
+from backend.app.schemas.memory import (
+    MemoryChunkSummary,
+    MemoryDeleteResponse,
+    MemoryDetailResponse,
+    MemorySourceSummary,
+)
 from backend.app.services.dataset_context import build_dataset_context
 from backend.app.services.dataset_store import delete_dataset_folder, hash_content, save_dataset_file
 from backend.app.services.memory_context import build_memory_context
@@ -417,6 +422,37 @@ def list_memory_sources(db: Session = Depends(get_db)):
         )
 
     return result
+
+
+@router.get("/memory/{memory_source_id}", response_model=MemoryDetailResponse)
+def get_memory_source(memory_source_id: int, db: Session = Depends(get_db)):
+    source = db.get(MemorySource, memory_source_id)
+    if source is None:
+        raise HTTPException(status_code=404, detail="Memory source not found")
+
+    chunks = db.scalars(
+        select(MemoryChunk)
+        .where(MemoryChunk.memory_source_id == source.id)
+        .order_by(MemoryChunk.chunk_index.asc())
+    ).all()
+
+    return MemoryDetailResponse(
+        id=source.id,
+        name=source.name,
+        original_filename=source.original_filename,
+        source_type=source.source_type,
+        content_text=source.content_text,
+        updated_at=source.updated_at.isoformat(),
+        chunk_count=len(chunks),
+        chunks=[
+            MemoryChunkSummary(
+                id=chunk.id,
+                chunk_index=chunk.chunk_index,
+                chunk_text=chunk.chunk_text,
+            )
+            for chunk in chunks
+        ],
+    )
 
 
 @router.delete("/memory/{memory_source_id}", response_model=MemoryDeleteResponse)
