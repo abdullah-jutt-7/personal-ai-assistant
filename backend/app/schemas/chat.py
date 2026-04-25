@@ -23,3 +23,17 @@ class ConversationMessage(BaseModel):
     content: str
     created_at: str
 
+
+class ConversationUpdateRequest(BaseModel):
+    title: str
+
+
+class ConversationUpdateResponse(BaseModel):
+    success: bool
+    conversation_id: int
+    title: str
+
+
+class ConversationDeleteResponse(BaseModel):
+    success: bool
+    conversation_id: int

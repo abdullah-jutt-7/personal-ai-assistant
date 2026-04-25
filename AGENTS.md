@@ -215,12 +215,12 @@ We will implement the project in stages.
 
 ### Stage 4 - Polish
 - [x] Improve visuals and motion.
-- [ ] Add settings and model selection.
 - [x] Add settings and model selection.
 - [x] Add theme persistence in local settings.
 - [x] Add installed Ollama model discovery and refresh.
 - [x] Add dark and light mode theme toggle.
 - [x] Add memory management UI.
+- [x] Add conversation rename and delete controls.
 - [ ] Add startup and tray behavior if desired.
 - [x] Add full-screen responsive shell that fills the viewport and scales on larger displays.
 - [x] Add compact sidebar breakpoint behavior for narrower screens.
@@ -275,6 +275,7 @@ Repo status:
 - The sidebar model picker can now refresh from the installed Ollama model list.
 - The UI theme can now be loaded from and saved to local settings.
 - The app should still boot its UI even if the Ollama model inventory endpoint is temporarily unavailable.
+- Chat conversations can now be renamed and deleted from the sidebar.
 - This file now defines the working direction.
 
 Immediate next step:

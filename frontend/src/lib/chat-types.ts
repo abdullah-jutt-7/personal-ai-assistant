@@ -4,6 +4,17 @@ export type ConversationSummary = {
   updated_at: string;
 };
 
+export type ConversationUpdateResult = {
+  success: boolean;
+  conversation_id: number;
+  title: string;
+};
+
+export type ConversationDeleteResult = {
+  success: boolean;
+  conversation_id: number;
+};
+
 export type ChatMessage = {
   id?: number;
   role: "user" | "assistant";

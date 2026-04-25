@@ -10,6 +10,8 @@ import { ThinkingPanel } from "@/components/thinking-panel";
 import type {
   ChatMessage,
   ConversationSummary,
+  ConversationDeleteResult,
+  ConversationUpdateResult,
   DatasetDetail,
   DatasetSummary,
   InstalledModel,
@@ -214,6 +216,60 @@ export default function Page() {
     setActiveConversationId(data.id);
     setMessages(starterMessages);
     if (isCompactViewport) setSidebarOpen(false);
+  }
+
+  async function renameConversation(conversationId: number, currentTitle: string) {
+    const nextTitle = window.prompt("Rename conversation", currentTitle)?.trim();
+    if (!nextTitle) return;
+
+    try {
+      const res = await fetch(`${apiBaseUrl}/api/conversations/${conversationId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: nextTitle }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Rename failed with status ${res.status}`);
+      }
+
+      const data = (await res.json()) as ConversationUpdateResult;
+      setConversations((current) =>
+        current.map((item) => (item.id === data.conversation_id ? { ...item, title: data.title } : item)),
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async function deleteConversation(conversationId: number) {
+    const confirmed = window.confirm("Delete this conversation?");
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`${apiBaseUrl}/api/conversations/${conversationId}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        throw new Error(`Delete failed with status ${res.status}`);
+      }
+
+      const data = (await res.json()) as ConversationDeleteResult;
+      setConversations((current) => current.filter((item) => item.id !== data.conversation_id));
+
+      if (activeConversationId === data.conversation_id) {
+        setActiveConversationId(null);
+        setMessages(starterMessages);
+
+        const nextConversation = conversations.find((item) => item.id !== data.conversation_id);
+        if (nextConversation) {
+          await loadConversation(nextConversation.id);
+        }
+      }
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   async function sendMessage() {
@@ -697,6 +753,8 @@ export default function Page() {
           onClose={() => setSidebarOpen(false)}
           onNewConversation={startNewConversation}
           onSelectConversation={loadConversation}
+          onRenameConversation={renameConversation}
+          onDeleteConversation={deleteConversation}
           onMemoryUpload={onMemoryUpload}
           onDeleteMemory={deleteMemory}
           onSelectMemory={openMemoryDetails}

@@ -1,5 +1,5 @@
 import type { ChangeEvent } from "react";
-import { FileText, LibraryBig, Plus, Settings2, Sparkles, Trash2, X } from "lucide-react";
+import { FilePenLine, FileText, LibraryBig, Plus, Settings2, Sparkles, Trash2, X } from "lucide-react";
 
 import type { ConversationSummary, DatasetSummary, InstalledModel, MemorySummary } from "@/lib/chat-types";
 
@@ -15,6 +15,8 @@ type SidebarProps = {
   onClose: () => void;
   onNewConversation: () => void;
   onSelectConversation: (conversationId: number) => void;
+  onRenameConversation: (conversationId: number, currentTitle: string) => void;
+  onDeleteConversation: (conversationId: number) => void;
   onMemoryUpload: (event: ChangeEvent<HTMLInputElement>) => void;
   onDatasetUpload: (event: ChangeEvent<HTMLInputElement>) => void;
   onDeleteDataset: (datasetId: number) => void;
@@ -41,6 +43,8 @@ export function AppSidebar({
   onClose,
   onNewConversation,
   onSelectConversation,
+  onRenameConversation,
+  onDeleteConversation,
   onMemoryUpload,
   onDatasetUpload,
   onDeleteDataset,
@@ -143,21 +147,44 @@ export function AppSidebar({
             </div>
           )}
           {conversations.map((conversation) => (
-            <button
+            <div
               key={conversation.id}
-              onClick={() => onSelectConversation(conversation.id)}
               className={[
-                "w-full rounded-2xl border px-4 py-3 text-left transition",
+                "rounded-2xl border px-4 py-3 transition",
                 activeConversationId === conversation.id
                   ? "border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))]"
                   : "border-[rgb(var(--border))] bg-[rgb(var(--panel))] hover:bg-[rgb(var(--panel-soft))]",
               ].join(" ")}
             >
-              <p className="truncate text-sm font-medium">{conversation.title}</p>
-              <p className="mt-1 text-xs text-[rgb(var(--muted))]">
-                Updated {new Date(conversation.updated_at).toLocaleString()}
-              </p>
-            </button>
+              <button
+                type="button"
+                onClick={() => onSelectConversation(conversation.id)}
+                className="w-full text-left"
+              >
+                <p className="truncate text-sm font-medium">{conversation.title}</p>
+                <p className="mt-1 text-xs text-[rgb(var(--muted))]">
+                  Updated {new Date(conversation.updated_at).toLocaleString()}
+                </p>
+              </button>
+              <div className="mt-3 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => onRenameConversation(conversation.id, conversation.title)}
+                  className="inline-flex items-center gap-1 rounded-full border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-[rgb(var(--muted))] transition hover:text-[rgb(var(--text))]"
+                >
+                  <FilePenLine className="h-3.5 w-3.5" />
+                  Rename
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onDeleteConversation(conversation.id)}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] text-[rgb(var(--muted))] transition hover:text-[rgb(var(--text))]"
+                  aria-label={`Delete conversation ${conversation.title}`}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
           ))}
         </div>
       </div>

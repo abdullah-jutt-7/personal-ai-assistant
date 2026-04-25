@@ -24,6 +24,9 @@ from backend.app.schemas.chat import (
     ChatResponse,
     ConversationMessage,
     ConversationSummary,
+    ConversationDeleteResponse,
+    ConversationUpdateRequest,
+    ConversationUpdateResponse,
 )
 from backend.app.schemas.datasets import DatasetImportResponse, DatasetSummary
 from backend.app.schemas.datasets import (
@@ -133,6 +136,42 @@ def create_conversation(db: Session = Depends(get_db)):
         title=conversation.title,
         updated_at=conversation.updated_at.isoformat(),
     )
+
+
+@router.put("/conversations/{conversation_id}", response_model=ConversationUpdateResponse)
+def update_conversation(
+    conversation_id: int,
+    payload: ConversationUpdateRequest,
+    db: Session = Depends(get_db),
+):
+    conversation = db.get(Conversation, conversation_id)
+    if conversation is None:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    title = payload.title.strip()
+    if not title:
+        raise HTTPException(status_code=400, detail="Conversation title is required")
+
+    conversation.title = title
+    conversation.updated_at = datetime.utcnow()
+    db.commit()
+
+    return {"success": True, "conversation_id": conversation.id, "title": conversation.title}
+
+
+@router.delete("/conversations/{conversation_id}", response_model=ConversationDeleteResponse)
+def delete_conversation(
+    conversation_id: int,
+    db: Session = Depends(get_db),
+):
+    conversation = db.get(Conversation, conversation_id)
+    if conversation is None:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    db.delete(conversation)
+    db.commit()
+
+    return {"success": True, "conversation_id": conversation_id}
 
 
 @router.get("/conversations/{conversation_id}", response_model=list[ConversationMessage])
