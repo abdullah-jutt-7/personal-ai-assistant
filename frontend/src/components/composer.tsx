@@ -39,7 +39,7 @@ export function Composer({ activeModel, input, isSending, onChange, onSend }: Co
 
   return (
     <footer className="mx-auto w-full max-w-[800px] px-[clamp(16px,1.3vw,28px)] pb-[clamp(14px,1.25vw,24px)]">
-      <div className="rounded-[1.5rem] bg-[rgb(var(--panel))] p-3 shadow-[0_12px_34px_rgba(0,0,0,0.08)] ring-1 ring-[rgb(var(--border)/0.08)]">
+      <div className="rounded-[1.75rem] bg-[rgb(var(--panel)/0.94)] p-2.5 shadow-[0_8px_22px_rgba(0,0,0,0.04)] ring-1 ring-[rgb(var(--border)/0.06)] backdrop-blur-xl">
         <textarea
           ref={textareaRef}
           value={input}
@@ -49,20 +49,20 @@ export function Composer({ activeModel, input, isSending, onChange, onSend }: Co
           }}
           onKeyDown={handleKeyDown}
           placeholder="Ask IntelliText anything..."
-          className="max-h-[220px] w-full resize-none bg-transparent px-1 py-2 text-sm leading-7 text-[rgb(var(--text))] outline-none placeholder:text-[rgb(var(--muted))]"
+          className="max-h-[220px] w-full resize-none bg-transparent px-1 py-1.5 text-[15px] leading-7 text-[rgb(var(--text))] outline-none placeholder:text-[rgb(var(--muted))]"
         />
-        <div className="mt-3 flex items-center justify-between gap-3">
+        <div className="mt-2.5 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-xs text-[rgb(var(--muted))]">
             <Bot className="h-4 w-4" />
             Ollama-powered local chat
-            <span className="rounded-full border border-[rgb(var(--border)/0.09)] px-2 py-0.5 text-[10px] uppercase tracking-[0.25em]">
+            <span className="rounded-full bg-[rgb(var(--panel-soft)/0.84)] px-2 py-0.5 text-[10px] uppercase tracking-[0.25em]">
               {activeModel}
             </span>
           </div>
           <button
             type="button"
             onClick={onSend}
-            className="inline-flex items-center gap-2 rounded-full bg-[rgb(var(--accent))] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_12px_26px_rgba(97,109,255,0.18)] transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-full bg-[rgb(var(--accent))] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(97,109,255,0.12)] transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50"
             disabled={isSending || input.trim().length === 0}
           >
             Send

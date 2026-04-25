@@ -124,11 +124,13 @@ Requirements:
 - Stream assistant responses live into the chat bubble instead of waiting for the full completion.
 - The current design priority is a minimal, uncluttered, premium interface; reduce card clutter and dense UI chrome where possible.
 - Keep app-level model selection in the header as a styled dropdown; do not bring the settings card back into the sidebar.
+- Favor flatter surfaces, quieter separators, and list-like navigation rows over stacked bordered cards wherever possible.
 
 Design direction:
 - Inspired by premium AI apps such as ChatGPT and You.com, but not copied exactly.
 - Left sidebar for navigation and history, main chat panel stretching across the remaining viewport, and a calm top status bar.
 - Rounded cards, thin borders, subtle gradients, and soft shadows.
+- Keep the overall visual language airy and minimal instead of heavily boxed and outlined.
 - Dark mode should feel rich and cinematic.
 - Light mode should feel clean, airy, and equally polished.
 - A real product feel, not a demo shell.
@@ -286,6 +288,8 @@ Repo status:
 - Keep iterating toward a cleaner, less cluttered visual language that feels closer to the minimal AI-app examples.
 - The model picker now lives in the header as a custom dropdown.
 - This file now defines the working direction.
+- The current UI polish pass should keep reducing card clutter and emphasizing open, list-like surfaces.
+- The current UI polish pass is actively flattening the sidebar, composer, and chat chrome so the app feels closer to a minimal reference AI interface.
 
 Immediate next step:
 - Build the first end-to-end experience for memory injection and dataset management on top of the scaffold.

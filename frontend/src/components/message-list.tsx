@@ -26,7 +26,7 @@ export function MessageList({ messages, theme }: MessageListProps) {
   );
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {visibleMessages.map((message) => {
         const isUser = message.role === "user";
         const isExpanded = expandedMessages[message.key] ?? false;
@@ -43,9 +43,9 @@ export function MessageList({ messages, theme }: MessageListProps) {
           >
             {isUser ? (
               <div className="max-w-[82%]">
-                <div className="rounded-full bg-[linear-gradient(135deg,rgb(var(--accent)),rgb(var(--accent-2)))] px-5 py-3 text-sm leading-7 text-white shadow-[0_12px_28px_rgba(99,79,247,0.16)]">
-                  <p className="whitespace-pre-wrap">{visibleText}</p>
-                </div>
+                <div className="rounded-full bg-[linear-gradient(135deg,rgb(var(--accent)),rgb(var(--accent-2)))] px-5 py-3 text-sm leading-7 text-white shadow-[0_10px_20px_rgba(99,79,247,0.12)]">
+                <p className="whitespace-pre-wrap">{visibleText}</p>
+              </div>
                 {shouldTruncate && (
                   <button
                     type="button"
@@ -63,7 +63,7 @@ export function MessageList({ messages, theme }: MessageListProps) {
               </div>
             ) : (
               <div className="flex max-w-[92%] items-start gap-3">
-                <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,rgb(var(--accent)),rgb(var(--accent-2)))] text-white shadow-[0_10px_20px_rgba(99,79,247,0.18)]">
+                <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,rgb(var(--accent)),rgb(var(--accent-2)))] text-white shadow-[0_10px_20px_rgba(99,79,247,0.14)]">
                   <Sparkles className="h-4 w-4" />
                 </div>
                 <div
@@ -71,7 +71,7 @@ export function MessageList({ messages, theme }: MessageListProps) {
                     "w-full text-sm leading-7",
                     theme === "light"
                       ? "text-[rgb(var(--text))]"
-                      : "rounded-[1.5rem] border border-[rgb(var(--border)/0.08)] bg-[rgb(var(--panel-soft)/0.68)] px-5 py-4 text-[rgb(var(--text))]",
+                      : "rounded-[1.35rem] bg-[rgb(var(--panel-soft)/0.56)] px-5 py-4 text-[rgb(var(--text))]",
                   )}
                 >
                   <MarkdownContent content={message.content} theme={theme} />

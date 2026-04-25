@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
-import { ChevronDown } from "lucide-react";
+import { ArrowDown } from "lucide-react";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { ChatHeader } from "@/components/chat-header";
@@ -821,11 +821,10 @@ export default function Page() {
                 <button
                   type="button"
                   onClick={scrollChatToBottom}
-                  className="absolute left-1/2 top-0 z-20 inline-flex -translate-x-1/2 -translate-y-[calc(100%+12px)] items-center gap-2 rounded-full border border-[rgb(var(--border)/0.08)] bg-[rgb(var(--panel))] px-4 py-2 text-xs font-medium text-[rgb(var(--text))] shadow-[0_12px_26px_rgba(0,0,0,0.12)] transition hover:scale-[1.01]"
+                  className="absolute left-1/2 top-0 z-20 inline-flex -translate-x-1/2 -translate-y-[calc(100%+12px)] items-center justify-center rounded-full border border-[rgb(var(--border)/0.08)] bg-[rgb(var(--panel))] p-2.5 text-[rgb(var(--text))] shadow-[0_12px_26px_rgba(0,0,0,0.12)] transition hover:scale-[1.01]"
                   aria-label="Scroll to bottom"
                 >
-                  <ChevronDown className="h-4 w-4" />
-                  Jump to bottom
+                  <ArrowDown className="h-4 w-4" />
                 </button>
               )}
               <Composer
