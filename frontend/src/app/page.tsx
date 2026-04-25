@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ChangeEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { ChatHeader } from "@/components/chat-header";
@@ -41,6 +41,7 @@ export default function Page() {
   const [activeModel, setActiveModel] = useState("qwen3:4b");
   const [isCompactViewport, setIsCompactViewport] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const chatScrollRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const storedTheme = window.localStorage.getItem(themeStorageKey) as Theme | null;
@@ -97,6 +98,16 @@ export default function Page() {
   useEffect(() => {
     void bootstrap();
   }, []);
+
+  useEffect(() => {
+    const container = chatScrollRef.current;
+    if (!container) return;
+
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: isSending ? "smooth" : "auto",
+    });
+  }, [messages, thinkingText, isSending]);
 
   async function bootstrap() {
     try {
@@ -369,7 +380,10 @@ export default function Page() {
 
           <ThinkingPanel thinkingText={thinkingText} />
 
-          <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-[clamp(16px,1.3vw,28px)] py-[clamp(16px,1.3vw,28px)]">
+          <div
+            ref={chatScrollRef}
+            className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-[clamp(16px,1.3vw,28px)] py-[clamp(16px,1.3vw,28px)]"
+          >
           <MessageList messages={messages} theme={theme} />
           </div>
 

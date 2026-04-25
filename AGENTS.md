@@ -105,6 +105,7 @@ Requirements:
 - Chat area must feel fast and uncluttered.
 - The document itself must not scroll during normal chat use; the conversation pane owns the scroll area.
 - The composer must send on Enter and allow Shift+Enter for line breaks.
+- The conversation pane should auto-scroll to the latest assistant/user message during normal chat flow.
 - User memory upload should be easy to find and easy to understand.
 - Include a clear model/status area in the header.
 - For the final-year demo, support an expandable reasoning/thinking view so we can show what the model is doing without cluttering the main chat.
@@ -212,6 +213,7 @@ We will implement the project in stages.
 - [x] Keep chat scrolling inside the conversation pane instead of scrolling the whole page.
 - [x] Support Enter-to-send in the composer.
 - [x] Render assistant markdown with richer typography and syntax-highlighted code blocks.
+- [x] Auto-scroll the conversation pane to the latest message during normal chat flow.
 
 ## Working Rules
 
@@ -237,6 +239,7 @@ Repo status:
 - Frontend is now split into reusable feature components for sidebar, header, message list, composer, and thinking panel.
 - Chat scrolling is now constrained to the conversation pane, and Enter-to-send is supported.
 - Assistant responses now render richer markdown and styled code blocks.
+- The conversation pane now auto-scrolls to the latest message during normal chat flow.
 - This file now defines the working direction.
 
 Immediate next step:
