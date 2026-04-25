@@ -32,6 +32,7 @@ from backend.app.schemas.datasets import (
     DatasetSourceSummary,
     DatasetVersionSummary,
 )
+from backend.app.schemas.memory import MemoryDeleteResponse, MemorySourceSummary
 from backend.app.services.dataset_context import build_dataset_context
 from backend.app.services.dataset_store import delete_dataset_folder, hash_content, save_dataset_file
 from backend.app.services.memory_context import build_memory_context
@@ -394,6 +395,40 @@ async def upload_memory(
         "name": source.name,
         "chunk_count": len(chunks),
     }
+
+
+@router.get("/memory", response_model=list[MemorySourceSummary])
+def list_memory_sources(db: Session = Depends(get_db)):
+    sources = db.scalars(select(MemorySource).order_by(desc(MemorySource.updated_at))).all()
+
+    result: list[MemorySourceSummary] = []
+    for source in sources:
+        chunk_count = db.scalar(
+            select(func.count()).select_from(MemoryChunk).where(MemoryChunk.memory_source_id == source.id)
+        )
+        result.append(
+            MemorySourceSummary(
+                id=source.id,
+                name=source.name,
+                original_filename=source.original_filename,
+                updated_at=source.updated_at.isoformat(),
+                chunk_count=chunk_count or 0,
+            )
+        )
+
+    return result
+
+
+@router.delete("/memory/{memory_source_id}", response_model=MemoryDeleteResponse)
+def delete_memory_source(memory_source_id: int, db: Session = Depends(get_db)):
+    source = db.get(MemorySource, memory_source_id)
+    if source is None:
+        raise HTTPException(status_code=404, detail="Memory source not found")
+
+    db.delete(source)
+    db.commit()
+
+    return {"success": True, "memory_source_id": memory_source_id}
 
 
 @router.post("/datasets/upload", response_model=DatasetImportResponse)

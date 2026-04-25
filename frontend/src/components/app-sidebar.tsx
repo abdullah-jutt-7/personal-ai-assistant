@@ -1,11 +1,12 @@
 import type { ChangeEvent } from "react";
 import { FileText, LibraryBig, Plus, Sparkles, Trash2, X } from "lucide-react";
 
-import type { ConversationSummary, DatasetSummary } from "@/lib/chat-types";
+import type { ConversationSummary, DatasetSummary, MemorySummary } from "@/lib/chat-types";
 
 type SidebarProps = {
   conversations: ConversationSummary[];
   datasets: DatasetSummary[];
+  memories: MemorySummary[];
   activeConversationId: number | null;
   memoryFileName: string | null;
   datasetFileName: string | null;
@@ -18,11 +19,13 @@ type SidebarProps = {
   onDatasetUpload: (event: ChangeEvent<HTMLInputElement>) => void;
   onDeleteDataset: (datasetId: number) => void;
   onSelectDataset: (datasetId: number) => void;
+  onDeleteMemory: (memoryId: number) => void;
 };
 
 export function AppSidebar({
   conversations,
   datasets,
+  memories,
   activeConversationId,
   memoryFileName,
   datasetFileName,
@@ -35,6 +38,7 @@ export function AppSidebar({
   onDatasetUpload,
   onDeleteDataset,
   onSelectDataset,
+  onDeleteMemory,
 }: SidebarProps) {
   return (
     <aside
@@ -125,6 +129,38 @@ export function AppSidebar({
           >
             Ready to store: {memoryFileName}
           </p>
+        )}
+        {memories.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
+              Local memory
+            </p>
+            <div className="max-h-[180px] space-y-2 overflow-auto pr-1">
+              {memories.map((memory) => (
+                <div
+                  key={memory.id}
+                  className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--panel))] px-3 py-2"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-medium">{memory.name}</p>
+                      <p className="mt-1 text-xs text-[rgb(var(--muted))]">
+                        {memory.chunk_count} chunk{memory.chunk_count === 1 ? "" : "s"}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => onDeleteMemory(memory.id)}
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[rgb(var(--border))] bg-[rgb(var(--panel-soft))] text-[rgb(var(--muted))] transition hover:text-[rgb(var(--text))]"
+                      aria-label={`Delete memory ${memory.name}`}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
       </div>
 

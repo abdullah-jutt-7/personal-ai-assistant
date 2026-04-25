@@ -115,6 +115,7 @@ Requirements:
 - Include a clear model/status area in the header.
 - For the final-year demo, support an expandable reasoning/thinking view so we can show what the model is doing without cluttering the main chat.
 - Assistant responses should render rich markdown with styled headings, paragraphs, lists, inline code, tables, and highlighted code blocks.
+- Memory management UI should allow viewing and deleting uploaded memory sources.
 - Support both dark mode and light mode from the start.
 - Include a theme toggle that remembers the user's preference locally.
 - Stream assistant responses live into the chat bubble instead of waiting for the full completion.
@@ -213,7 +214,7 @@ We will implement the project in stages.
 - [x] Improve visuals and motion.
 - [ ] Add settings and model selection.
 - [x] Add dark and light mode theme toggle.
-- [ ] Add memory management UI.
+- [x] Add memory management UI.
 - [ ] Add startup and tray behavior if desired.
 - [x] Add full-screen responsive shell that fills the viewport and scales on larger displays.
 - [x] Add compact sidebar breakpoint behavior for narrower screens.
@@ -225,6 +226,7 @@ We will implement the project in stages.
 - [x] Use dataset chunks as bounded prompt-time context.
 - [x] Add delete controls for imported datasets.
 - [x] Add dataset details panel for inspection.
+- [x] Add memory source list and delete controls.
 
 ## Working Rules
 
@@ -252,6 +254,7 @@ Repo status:
 - Assistant responses now render richer markdown and styled code blocks.
 - The conversation pane now auto-scrolls to the latest message during normal chat flow.
 - Uploaded memory now influences future prompts through a bounded local-memory system prompt section.
+- Uploaded memory sources can now be listed and deleted from the sidebar.
 - Local dataset imports now create stored files and metadata entries, with a sidebar list of imported datasets.
 - Imported datasets now contribute bounded prompt-time context chunks alongside memory.
 - Imported datasets can now be deleted from the sidebar, which also cleans up their local storage folder.

@@ -12,6 +12,7 @@ import type {
   ConversationSummary,
   DatasetDetail,
   DatasetSummary,
+  MemorySummary,
   Theme,
 } from "@/lib/chat-types";
 
@@ -43,6 +44,7 @@ export default function Page() {
   const [status, setStatus] = useState("Checking local backend...");
   const [memoryFileName, setMemoryFileName] = useState<string | null>(null);
   const [datasetFileName, setDatasetFileName] = useState<string | null>(null);
+  const [memorySources, setMemorySources] = useState<MemorySummary[]>([]);
   const [thinkingText, setThinkingText] = useState("");
   const [theme, setTheme] = useState<Theme>("dark");
   const [activeModel, setActiveModel] = useState("qwen3:4b");
@@ -120,20 +122,23 @@ export default function Page() {
 
   async function bootstrap() {
     try {
-      const [healthRes, convRes, datasetRes] = await Promise.all([
+      const [healthRes, convRes, datasetRes, memoryRes] = await Promise.all([
         fetch(`${apiBaseUrl}/api/health`),
         fetch(`${apiBaseUrl}/api/conversations`),
         fetch(`${apiBaseUrl}/api/datasets`),
+        fetch(`${apiBaseUrl}/api/memory`),
       ]);
 
       const health = await healthRes.json();
       const convData = (await convRes.json()) as ConversationSummary[];
       const datasetData = (await datasetRes.json()) as DatasetSummary[];
+      const memoryData = (await memoryRes.json()) as MemorySummary[];
 
       setStatus(`${health.assistant} ready on local backend`);
       setActiveModel(health.model ?? "qwen3:4b");
       setConversations(convData);
       setDatasets(datasetData);
+      setMemorySources(memoryData);
 
       if (convData.length > 0) {
         const first = convData[0];
@@ -338,6 +343,10 @@ export default function Page() {
 
       if (data.success) {
         setMemoryFileName(`${data.name} (${data.chunk_count} chunks saved)`);
+        const refresh = await fetch(`${apiBaseUrl}/api/memory`);
+        if (refresh.ok) {
+          setMemorySources((await refresh.json()) as MemorySummary[]);
+        }
         if (isCompactViewport) setSidebarOpen(false);
       }
     } catch (error) {
@@ -409,6 +418,28 @@ export default function Page() {
     }
   }
 
+  async function deleteMemory(memoryId: number) {
+    const confirmed = window.confirm("Delete this memory source from local storage?");
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`${apiBaseUrl}/api/memory/${memoryId}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        throw new Error(`Delete failed with status ${res.status}`);
+      }
+
+      const refresh = await fetch(`${apiBaseUrl}/api/memory`);
+      if (refresh.ok) {
+        setMemorySources((await refresh.json()) as MemorySummary[]);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   async function openDatasetDetails(datasetId: number) {
     try {
       const res = await fetch(`${apiBaseUrl}/api/datasets/${datasetId}`);
@@ -445,6 +476,7 @@ export default function Page() {
         <AppSidebar
           conversations={conversations}
           datasets={datasets}
+          memories={memorySources}
           activeConversationId={activeConversationId}
           memoryFileName={memoryFileName}
           datasetFileName={datasetFileName}
@@ -454,6 +486,7 @@ export default function Page() {
           onNewConversation={startNewConversation}
           onSelectConversation={loadConversation}
           onMemoryUpload={onMemoryUpload}
+          onDeleteMemory={deleteMemory}
           onDatasetUpload={onDatasetUpload}
           onDeleteDataset={deleteDataset}
           onSelectDataset={openDatasetDetails}

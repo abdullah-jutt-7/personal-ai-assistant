@@ -49,3 +49,11 @@ export type DatasetDetail = DatasetSummary & {
   versions: DatasetVersion[];
   chunks: DatasetChunk[];
 };
+
+export type MemorySummary = {
+  id: number;
+  name: string;
+  original_filename: string;
+  updated_at: string;
+  chunk_count: number;
+};
