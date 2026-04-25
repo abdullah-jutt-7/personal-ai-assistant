@@ -36,6 +36,7 @@ export default function Page() {
   const [isSending, setIsSending] = useState(false);
   const [status, setStatus] = useState("Checking local backend...");
   const [memoryFileName, setMemoryFileName] = useState<string | null>(null);
+  const [thinkingText, setThinkingText] = useState<string>("");
 
   useEffect(() => {
     void bootstrap();
@@ -90,9 +91,17 @@ export default function Page() {
     setMessages((current) => [...current, optimisticUserMessage]);
     setInput("");
     setIsSending(true);
+    setThinkingText("");
 
     try {
-      const res = await fetch(`${apiBaseUrl}/api/chat`, {
+      let assistantIndex = -1;
+      setMessages((current) => {
+        const next = [...current, { role: "assistant" as const, content: "" }];
+        assistantIndex = next.length - 1;
+        return next;
+      });
+
+      const res = await fetch(`${apiBaseUrl}/api/chat/stream`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -105,18 +114,114 @@ export default function Page() {
         throw new Error(`Request failed with status ${res.status}`);
       }
 
-      const data = (await res.json()) as { conversation_id: number; response: string };
-      setActiveConversationId(data.conversation_id);
-      setMessages((current) => [
-        ...current,
-        { role: "assistant", content: data.response },
-      ]);
+      const reader = res.body?.getReader();
+      if (!reader) {
+        throw new Error("Streaming response body is not available");
+      }
+
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      const applyDelta = (delta: string) => {
+        if (assistantIndex < 0) return;
+        setMessages((current) => {
+          if (!current[assistantIndex]) return current;
+          const next = [...current];
+          next[assistantIndex] = {
+            ...next[assistantIndex],
+            content: `${next[assistantIndex].content}${delta}`,
+          };
+          return next;
+        });
+      };
+
+      const parseEventBlock = (block: string) => {
+        const lines = block.split("\n");
+        let eventName = "message";
+        let dataText = "";
+
+        for (const line of lines) {
+          if (line.startsWith("event:")) {
+            eventName = line.slice("event:".length).trim();
+          } else if (line.startsWith("data:")) {
+            dataText += line.slice("data:".length).trim();
+          }
+        }
+
+        return { eventName, dataText };
+      };
+
+      const flushBuffer = () => {
+        let separatorIndex = buffer.indexOf("\n\n");
+
+        while (separatorIndex !== -1) {
+          const block = buffer.slice(0, separatorIndex).trim();
+          buffer = buffer.slice(separatorIndex + 2);
+          separatorIndex = buffer.indexOf("\n\n");
+
+          if (!block) continue;
+
+          const { eventName, dataText } = parseEventBlock(block);
+          if (!dataText) continue;
+
+          const payload = JSON.parse(dataText) as {
+            conversation_id?: number;
+            delta?: string;
+            response?: string;
+            thinking?: string;
+            detail?: string;
+          };
+
+          if (eventName === "meta" && payload.conversation_id) {
+            setActiveConversationId(payload.conversation_id);
+          } else if (eventName === "thinking" && payload.delta) {
+            setThinkingText((current) => `${current}${payload.delta}`);
+          } else if (eventName === "content" && payload.delta) {
+            applyDelta(payload.delta);
+          } else if (eventName === "done") {
+            if (payload.conversation_id) {
+              setActiveConversationId(payload.conversation_id);
+            }
+            if (typeof payload.response === "string") {
+              setMessages((current) => {
+                if (assistantIndex < 0 || !current[assistantIndex]) return current;
+                const next = [...current];
+                next[assistantIndex] = {
+                  ...next[assistantIndex],
+                  content: payload.response ?? "",
+                };
+                return next;
+              });
+            }
+          } else if (eventName === "error") {
+            throw new Error(payload.detail || "Streaming failed");
+          }
+        }
+      };
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        flushBuffer();
+      }
+
+      buffer += decoder.decode();
+      flushBuffer();
 
       const convRes = await fetch(`${apiBaseUrl}/api/conversations`);
       if (convRes.ok) {
         setConversations((await convRes.json()) as ConversationSummary[]);
       }
     } catch (error) {
+      setMessages((current) => {
+        const next = [...current];
+        const last = next[next.length - 1];
+        if (last?.role === "assistant" && last.content === "") {
+          next.pop();
+        }
+        return next;
+      });
       setMessages((current) => [
         ...current,
         {
@@ -128,6 +233,7 @@ export default function Page() {
       console.error(error);
     } finally {
       setIsSending(false);
+      setThinkingText("");
     }
   }
 
@@ -256,6 +362,19 @@ export default function Page() {
               {accentText}
             </div>
           </header>
+
+          {thinkingText && (
+            <div className="border-b border-white/8 bg-black/15 px-6 py-3 text-xs text-white/55">
+              <details className="group">
+                <summary className="cursor-pointer list-none font-medium text-white/65">
+                  Model thinking
+                </summary>
+                <div className="mt-2 whitespace-pre-wrap rounded-2xl border border-white/8 bg-black/25 p-3 leading-6 text-white/50">
+                  {thinkingText}
+                </div>
+              </details>
+            </div>
+          )}
 
           <div className="flex-1 overflow-auto px-6 py-6">
             <div className="space-y-4">

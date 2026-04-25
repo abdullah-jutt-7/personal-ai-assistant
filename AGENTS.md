@@ -59,6 +59,7 @@ Developer setup rule:
 - No separate database server.
 - Prefer `python -m venv`, `pip install -r requirements.txt`, `npm install`, and one app start command per side if we keep the frontend and backend split during development.
 - If we add helper scripts, they must reduce setup, not increase it.
+- Supported development Python versions are 3.12 or 3.13. Do not use Python 3.14 for now because some native packages in the stack may not have wheels for it yet.
 
 ## Core Architecture
 
@@ -99,10 +100,18 @@ Requirements:
 - Sidebar for chats, memory, and settings.
 - Chat area must feel fast and uncluttered.
 - User memory upload should be easy to find and easy to understand.
+- Include a clear model/status area in the header.
+- For the final-year demo, support an expandable reasoning/thinking view so we can show what the model is doing without cluttering the main chat.
+- Support both dark mode and light mode from the start.
+- Include a theme toggle that remembers the user's preference locally.
+- Stream assistant responses live into the chat bubble instead of waiting for the full completion.
 
 Design direction:
-- Bold but clean.
-- Friendly, modern, and trustworthy.
+- Inspired by premium AI apps such as ChatGPT and You.com, but not copied exactly.
+- Left sidebar for navigation and history, centered main chat panel, and a calm top status bar.
+- Rounded cards, thin borders, subtle gradients, and soft shadows.
+- Dark mode should feel rich and cinematic.
+- Light mode should feel clean, airy, and equally polished.
 - A real product feel, not a demo shell.
 
 ## Data Model
@@ -164,6 +173,7 @@ We will implement the project in stages.
 - [x] Store chat history locally.
 - [x] Call Ollama and render responses.
 - [x] Support multiple conversations.
+- [x] Stream assistant responses live into the chat bubble.
 
 ### Stage 2 - Memory
 - [x] Add file upload.
@@ -205,6 +215,7 @@ We will implement the project in stages.
 Repo status:
 - Old implementation removed.
 - Initial Python backend and Next.js frontend scaffold are in place.
+- Live streamed chat responses are now implemented.
 - This file now defines the working direction.
 
 Immediate next step:

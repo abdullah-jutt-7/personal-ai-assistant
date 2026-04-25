@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import json
+from collections.abc import AsyncIterator
+
 import httpx
 
 from backend.app.core.config import settings
@@ -27,3 +30,36 @@ async def generate_reply(messages: list[dict[str, str]]) -> str:
 
     return data["message"]["content"].strip()
 
+
+async def stream_reply(messages: list[dict[str, str]]) -> AsyncIterator[dict[str, str]]:
+    payload = {
+        "model": settings.ollama_model,
+        "messages": [{"role": "system", "content": SYSTEM_PROMPT}, *messages],
+        "stream": True,
+    }
+
+    async with httpx.AsyncClient(timeout=None) as client:
+        async with client.stream(
+            "POST",
+            f"{settings.ollama_base_url}/api/chat",
+            json=payload,
+        ) as response:
+            response.raise_for_status()
+
+            async for line in response.aiter_lines():
+                if not line.strip():
+                    continue
+
+                data = json.loads(line)
+                message = data.get("message") or {}
+                content = message.get("content") or ""
+                thinking = message.get("thinking") or ""
+
+                if thinking:
+                    yield {"type": "thinking", "delta": thinking}
+
+                if content:
+                    yield {"type": "content", "delta": content}
+
+                if data.get("done"):
+                    yield {"type": "done", "content": content}
