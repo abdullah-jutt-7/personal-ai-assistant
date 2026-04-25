@@ -35,6 +35,7 @@ from backend.app.schemas.datasets import (
     DatasetUpdateResponse,
 )
 from backend.app.schemas.settings import ModelSettingsResponse, ModelSettingsUpdateRequest
+from backend.app.schemas.settings import ThemeSettingsResponse, ThemeSettingsUpdateRequest
 from backend.app.schemas.memory import (
     MemoryChunkSummary,
     MemoryDeleteResponse,
@@ -48,6 +49,7 @@ from backend.app.services.app_settings import get_active_ollama_model, set_activ
 from backend.app.services.dataset_store import delete_dataset_folder, hash_content, save_dataset_file
 from backend.app.services.memory_context import build_memory_context
 from backend.app.services.ollama_client import generate_reply, stream_reply
+from backend.app.services.user_settings import get_theme_setting, set_theme_setting
 
 
 router = APIRouter(prefix="/api", tags=["api"])
@@ -76,6 +78,20 @@ def update_model_settings(
 ):
     model_name = set_active_ollama_model(db, payload.ollama_model)
     return {"ollama_model": model_name}
+
+
+@router.get("/settings/theme", response_model=ThemeSettingsResponse)
+def get_theme_settings(db: Session = Depends(get_db)):
+    return {"theme": get_theme_setting(db)}
+
+
+@router.put("/settings/theme", response_model=ThemeSettingsResponse)
+def update_theme_settings(
+    payload: ThemeSettingsUpdateRequest,
+    db: Session = Depends(get_db),
+):
+    theme = set_theme_setting(db, payload.theme)
+    return {"theme": theme}
 
 
 @router.get("/conversations", response_model=list[ConversationSummary])

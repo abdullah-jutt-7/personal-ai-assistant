@@ -217,6 +217,7 @@ We will implement the project in stages.
 - [x] Improve visuals and motion.
 - [ ] Add settings and model selection.
 - [x] Add settings and model selection.
+- [x] Add theme persistence in local settings.
 - [x] Add dark and light mode theme toggle.
 - [x] Add memory management UI.
 - [ ] Add startup and tray behavior if desired.
@@ -270,6 +271,7 @@ Repo status:
 - Imported datasets can now be inspected through a details panel showing sources, versions, and chunk previews.
 - Imported datasets can now be renamed and re-described from the details panel.
 - The active Ollama model can now be viewed and changed from the sidebar settings card.
+- The UI theme can now be loaded from and saved to local settings.
 - This file now defines the working direction.
 
 Immediate next step:

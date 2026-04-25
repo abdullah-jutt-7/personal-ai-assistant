@@ -16,6 +16,10 @@ export type ModelSettings = {
   ollama_model: string;
 };
 
+export type ThemeSettings = {
+  theme: Theme;
+};
+
 export type DatasetSummary = {
   id: number;
   name: string;

@@ -17,6 +17,7 @@ import type {
   MemoryDetail,
   MemorySummary,
   MemoryUpdateResult,
+  ThemeSettings,
   Theme,
 } from "@/lib/chat-types";
 
@@ -141,16 +142,23 @@ export default function Page() {
         fetch(`${apiBaseUrl}/api/datasets`),
         fetch(`${apiBaseUrl}/api/memory`),
       ]);
+      const themeRes = await fetch(`${apiBaseUrl}/api/settings/theme`);
+      const modelRes = await fetch(`${apiBaseUrl}/api/settings/model`);
 
       const health = await healthRes.json();
       const convData = (await convRes.json()) as ConversationSummary[];
       const datasetData = (await datasetRes.json()) as DatasetSummary[];
       const memoryData = (await memoryRes.json()) as MemorySummary[];
+      const themeData = (await themeRes.json()) as ThemeSettings;
+      const modelData = (await modelRes.json()) as ModelSettings;
 
       setStatus(`${health.assistant} ready on local backend`);
-      const nextModel = health.model ?? "qwen3:4b";
+      const nextModel = modelData.ollama_model ?? health.model ?? "qwen3:4b";
       setActiveModel(nextModel);
       setModelDraft(nextModel);
+      if (themeData.theme === "dark" || themeData.theme === "light") {
+        setTheme(themeData.theme);
+      }
       setConversations(convData);
       setDatasets(datasetData);
       setMemorySources(memoryData);
@@ -620,6 +628,21 @@ export default function Page() {
     [isSending, status],
   );
 
+  async function handleToggleTheme() {
+    const nextTheme = theme === "dark" ? "light" : "dark";
+    setTheme(nextTheme);
+
+    try {
+      await fetch(`${apiBaseUrl}/api/settings/theme`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ theme: nextTheme }),
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   return (
     <main
       className="app-shell h-dvh overflow-hidden text-[rgb(var(--text))]"
@@ -664,12 +687,12 @@ export default function Page() {
         <section className="app-panel flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[2rem]">
           <ChatHeader
             accentText={accentText}
-            activeModel={activeModel}
-            isCompactViewport={isCompactViewport}
-            theme={theme}
-            onOpenSidebar={() => setSidebarOpen(true)}
-            onToggleTheme={() => setTheme((current) => (current === "dark" ? "light" : "dark"))}
-          />
+          activeModel={activeModel}
+          isCompactViewport={isCompactViewport}
+          theme={theme}
+          onOpenSidebar={() => setSidebarOpen(true)}
+          onToggleTheme={handleToggleTheme}
+        />
 
           <ThinkingPanel thinkingText={thinkingText} />
 

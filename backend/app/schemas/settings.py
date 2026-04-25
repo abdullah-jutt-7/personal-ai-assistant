@@ -7,3 +7,11 @@ class ModelSettingsResponse(BaseModel):
 
 class ModelSettingsUpdateRequest(BaseModel):
     ollama_model: str
+
+
+class ThemeSettingsResponse(BaseModel):
+    theme: str
+
+
+class ThemeSettingsUpdateRequest(BaseModel):
+    theme: str
