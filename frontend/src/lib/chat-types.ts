@@ -19,6 +19,8 @@ export type ChatMessage = {
   id?: number;
   role: "user" | "assistant";
   content: string;
+  reasoning_text?: string;
+  reasoning_seconds?: number;
 };
 
 export type Theme = "dark" | "light";

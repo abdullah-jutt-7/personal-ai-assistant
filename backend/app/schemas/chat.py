@@ -21,6 +21,8 @@ class ConversationMessage(BaseModel):
     id: int
     role: str
     content: str
+    reasoning_text: str | None = None
+    reasoning_seconds: int | None = None
     created_at: str
 
 

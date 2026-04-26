@@ -13,9 +13,8 @@ type SidebarProps = {
   conversationSearch: string;
   memoryFileName: string | null;
   datasetFileName: string | null;
-  isCompactViewport: boolean;
   sidebarOpen: boolean;
-  onClose: () => void;
+  onToggleSidebar: () => void;
   onNewConversation: () => void;
   onSelectConversation: (conversationId: number) => void;
   onConversationSearchChange: (value: string) => void;
@@ -60,21 +59,6 @@ function groupConversations(conversations: ConversationSummary[]) {
     .map((label) => ({ label, items: groups.get(label) ?? [] }));
 }
 
-function formatConversationUpdatedAt(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return date.toLocaleString([], {
-    month: "numeric",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
-
 export function AppSidebar({
   conversations,
   datasets,
@@ -83,9 +67,8 @@ export function AppSidebar({
   conversationSearch,
   memoryFileName,
   datasetFileName,
-  isCompactViewport,
   sidebarOpen,
-  onClose,
+  onToggleSidebar,
   onNewConversation,
   onSelectConversation,
   onConversationSearchChange,
@@ -100,12 +83,17 @@ export function AppSidebar({
 }: SidebarProps) {
   const groupedConversations = groupConversations(conversations);
   const [menuOpenId, setMenuOpenId] = useState<number | null>(null);
+  const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
   const menuRootRef = useRef<HTMLDivElement | null>(null);
+  const sidebarSurfaceRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const onPointerDown = (event: MouseEvent) => {
-      if (menuRootRef.current && !menuRootRef.current.contains(event.target as Node)) {
+      const target = event.target as Element | null;
+      const clickedTrigger = target?.closest("[data-conversation-menu-trigger='true']");
+      if (menuRootRef.current && !menuRootRef.current.contains(event.target as Node) && !clickedTrigger) {
         setMenuOpenId(null);
+        setMenuPosition(null);
       }
     };
 
@@ -116,16 +104,15 @@ export function AppSidebar({
   return (
     <aside
       className={[
-        "shrink-0 overflow-visible border-r border-[rgb(var(--border)/0.05)] bg-[rgb(var(--panel)/0.7)] p-[clamp(12px,0.85vw,16px)] backdrop-blur-2xl transition-transform duration-200 ease-out",
-        "rounded-r-[1.85rem] rounded-l-none shadow-[0_18px_45px_rgba(0,0,0,0.08)]",
-        isCompactViewport ? "fixed inset-y-[clamp(8px,0.75vw,20px)] left-[clamp(8px,0.75vw,20px)] z-40" : "relative",
-        isCompactViewport && !sidebarOpen ? "-translate-x-[110%]" : "translate-x-0",
+        "fixed inset-y-0 left-0 z-40 isolate w-[clamp(308px,21vw,392px)] shrink-0 border-r border-[rgb(var(--border)/0.05)] bg-[rgb(var(--panel)/0.74)] p-[clamp(12px,0.85vw,16px)] backdrop-blur-2xl transition-transform duration-200 ease-out",
+        "rounded-r-[2rem] rounded-l-none shadow-[0_18px_45px_rgba(0,0,0,0.08)]",
+        sidebarOpen ? "translate-x-0" : "-translate-x-[102%]",
       ].join(" ")}
-      style={{ width: "clamp(300px, 21vw, 390px)" }}
+      ref={sidebarSurfaceRef}
     >
       <div className="mb-4 flex items-start justify-between gap-3">
-        <div className="flex flex-1 items-center gap-3 rounded-[1.25rem] bg-[rgb(var(--panel-soft)/0.62)] px-3.5 py-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,rgb(var(--accent)),rgb(var(--accent-2)))] text-white">
+        <div className="flex flex-1 items-center gap-3 rounded-[1.2rem] bg-[rgb(var(--panel-soft)/0.56)] px-3.5 py-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,rgb(var(--accent)),rgb(var(--accent-2)))] text-white shadow-[0_12px_24px_rgba(97,109,255,0.22)]">
             <Sparkles className="h-5 w-5" />
           </div>
           <div>
@@ -135,21 +122,19 @@ export function AppSidebar({
             <h1 className="text-[1.02rem] font-semibold leading-tight">IntelliText</h1>
           </div>
         </div>
-        {isCompactViewport && (
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-full border border-[rgb(var(--border)/0.08)] bg-[rgb(var(--panel-soft)/0.9)] p-2 text-[rgb(var(--text))]"
-            aria-label="Close sidebar"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={onToggleSidebar}
+          className="rounded-full border border-[rgb(var(--border)/0.08)] bg-[rgb(var(--panel-soft)/0.9)] p-2 text-[rgb(var(--text))]"
+          aria-label="Close sidebar"
+        >
+          <X className="h-4 w-4" />
+        </button>
       </div>
 
       <button
         onClick={onNewConversation}
-        className="mb-3 flex w-full items-center justify-center gap-2 rounded-full bg-[rgb(var(--text))] px-4 py-2.25 text-sm font-semibold text-[rgb(var(--bg))] transition hover:scale-[1.01]"
+        className="mb-3 flex w-full items-center justify-center gap-2 rounded-full bg-[rgb(var(--text))] px-4 py-[9px] text-sm font-semibold text-[rgb(var(--bg))] transition hover:scale-[1.01]"
       >
         <Plus className="h-4 w-4" />
         New conversation
@@ -160,7 +145,7 @@ export function AppSidebar({
           <LibraryBig className="h-4 w-4" />
           Chats
         </div>
-        <label className="flex items-center gap-2 rounded-full bg-[rgb(var(--panel-soft)/0.62)] px-3 py-2 text-sm text-[rgb(var(--muted))]">
+        <label className="flex items-center gap-2 rounded-full bg-[rgb(var(--panel-soft)/0.56)] px-3 py-2 text-sm text-[rgb(var(--muted))]">
           <Search className="h-4 w-4" />
           <input
             value={conversationSearch}
@@ -170,78 +155,78 @@ export function AppSidebar({
           />
         </label>
 
-        <div className="max-h-[340px] space-y-3 overflow-auto pr-1 scrollbar-hide">
+        <div
+          className="max-h-[340px] space-y-3 overflow-y-auto pr-1 scrollbar-hide"
+          onScroll={() => {
+            if (menuOpenId !== null) {
+              setMenuOpenId(null);
+              setMenuPosition(null);
+            }
+          }}
+        >
           {conversations.length === 0 && (
-            <div className="rounded-[1rem] border border-dashed border-[rgb(var(--border)/0.12)] bg-[rgb(var(--panel-soft)/0.68)] p-3 text-sm text-[rgb(var(--muted))]">
+            <div className="rounded-[1rem] border border-dashed border-[rgb(var(--border)/0.12)] bg-[rgb(var(--panel-soft)/0.5)] p-3 text-sm text-[rgb(var(--muted))]">
               No conversations yet.
             </div>
           )}
 
           {groupedConversations.map((group) => (
             <div key={group.label} className="space-y-2">
-              <div className="sticky top-0 z-[1] bg-[rgb(var(--panel)/0.86)] py-1 text-[10px] font-medium uppercase tracking-[0.22em] text-[rgb(var(--muted))] backdrop-blur-xl">
+              <div className=" bg-[rgb(var(--panel)/0.86)] py-1 text-[10px] font-medium uppercase tracking-[0.22em] text-[rgb(var(--muted))] backdrop-blur-xl">
                 {group.label}
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 relative">
                 {group.items.map((conversation) => {
                   const isActive = activeConversationId === conversation.id;
-                  const isMenuOpen = menuOpenId === conversation.id;
 
                   return (
                     <div
                       key={conversation.id}
-                      ref={isMenuOpen ? menuRootRef : undefined}
                       className={[
-                        "group relative rounded-[0.95rem] px-3 py-2.25 transition",
+                        "group relative rounded-[0.95rem] px-3 py-[9px] transition",
                         isActive
                           ? "bg-[rgb(var(--panel-soft)/0.72)]"
                           : "bg-transparent hover:bg-[rgb(var(--panel-soft)/0.48)]",
                       ].join(" ")}
+                      data-conversation-row="true"
                     >
                       <button type="button" onClick={() => onSelectConversation(conversation.id)} className="w-full text-left">
                         <p className="max-w-[calc(100%-42px)] truncate text-[13px] font-medium text-[rgb(var(--text))]">
                           {conversation.title}
                         </p>
-                        <p className="mt-1 text-[10px] text-[rgb(var(--muted))]">
-                          Updated {formatConversationUpdatedAt(conversation.updated_at)}
-                        </p>
                       </button>
 
                       <button
                         type="button"
-                        onClick={() => setMenuOpenId((current) => (current === conversation.id ? null : conversation.id))}
+                        data-conversation-menu-trigger="true"
+                        onClick={(event) => {
+                          if (menuOpenId === conversation.id) {
+                            setMenuOpenId(null);
+                            setMenuPosition(null);
+                            return;
+                          }
+
+                          const row = event.currentTarget.closest("[data-conversation-row='true']") as HTMLElement | null;
+                          const sidebar = sidebarSurfaceRef.current;
+                          if (!row || !sidebar) return;
+
+                          const rowRect = row.getBoundingClientRect();
+                          const sidebarRect = sidebar.getBoundingClientRect();
+                          const popupWidth = 160;
+                          const desiredLeft = sidebarRect.width - 22;
+                          const maxLeft = Math.max(12, window.innerWidth - popupWidth - 12);
+
+                          setMenuPosition({
+                            top: rowRect.top - sidebarRect.top + 0,
+                            left: Math.min(desiredLeft, maxLeft),
+                          });
+                          setMenuOpenId(conversation.id);
+                        }}
                         className="absolute right-2 top-2 z-40 inline-flex h-7 w-7 items-center justify-center rounded-full bg-[rgb(var(--panel-soft)/0.82)] text-[rgb(var(--muted))] opacity-100 transition hover:text-[rgb(var(--text))] md:opacity-0 md:group-hover:opacity-100"
                         aria-label={`Open conversation actions for ${conversation.title}`}
                       >
                         <EllipsisVertical className="h-3.5 w-3.5" />
                       </button>
-
-                      {isMenuOpen && (
-                        <div className="absolute right-2 top-[2.15rem] z-50 w-40 rounded-[0.95rem] bg-[rgb(var(--panel))] p-1 shadow-[0_16px_34px_rgba(0,0,0,0.12)] ring-1 ring-[rgb(var(--border)/0.06)]">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setMenuOpenId(null);
-                              onRenameConversation(conversation.id, conversation.title);
-                            }}
-                            className="flex w-full items-center gap-2 rounded-[0.8rem] px-3 py-2 text-left text-sm text-[rgb(var(--text))] transition hover:bg-[rgb(var(--panel-soft))]"
-                          >
-                            <FilePenLine className="h-4 w-4" />
-                            Rename
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setMenuOpenId(null);
-                              onDeleteConversation(conversation.id);
-                            }}
-                            className="flex w-full items-center gap-2 rounded-[0.8rem] px-3 py-2 text-left text-sm text-[rgb(var(--text))] transition hover:bg-[rgb(var(--panel-soft))]"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            Delete
-                          </button>
-                        </div>
-                      )}
                     </div>
                   );
                 })}
@@ -251,12 +236,54 @@ export function AppSidebar({
         </div>
       </div>
 
+      {menuOpenId !== null && menuPosition && (
+        <div
+          ref={menuRootRef}
+          className="pointer-events-auto absolute z-[300] w-40 overflow-hidden rounded-[0.8rem] border border-[rgb(var(--border)/0.6)] bg-[rgb(var(--panel)/0.98)] p-1.5 space-y-1 shadow-[0_20px_40px_rgba(0,0,0,0.18)] backdrop-blur-xl"
+          style={{ top: menuPosition.top, left: menuPosition.left }}
+        >
+          {(() => {
+            const activeConversation = conversations.find((conversation) => conversation.id === menuOpenId);
+            if (!activeConversation) return null;
+
+            return (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpenId(null);
+                    setMenuPosition(null);
+                    onRenameConversation(activeConversation.id, activeConversation.title);
+                  }}
+                  className="flex w-full items-center gap-2 rounded-[0.5rem] px-3 py-2 text-left text-sm text-[rgb(var(--text))] transition hover:bg-[rgb(var(--accent))] pointer-events-auto"
+                >
+                  <FilePenLine className="h-4 w-4" />
+                  Rename
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpenId(null);
+                    setMenuPosition(null);
+                    onDeleteConversation(activeConversation.id);
+                  }}
+                  className="flex w-full items-center gap-2 rounded-[0.5rem] px-3 py-2 text-left text-sm text-[rgb(var(--red))] transition hover:bg-red-700 pointer-events-auto"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Delete
+                </button>
+              </>
+            );
+          })()}
+        </div>
+      )}
+
       <section className="mt-4 space-y-3 border-t border-[rgb(var(--border)/0.05)] pt-4">
         <div className="flex items-center gap-2 px-1 text-sm font-semibold">
           <FileText className="h-4 w-4" />
           Memory upload
         </div>
-        <label className="flex cursor-pointer items-center justify-center rounded-full border border-dashed border-[rgb(var(--border)/0.08)] bg-[rgb(var(--panel-soft)/0.38)] px-4 py-3 text-sm text-[rgb(var(--muted))] transition hover:bg-[rgb(var(--panel-soft)/0.68)]">
+        <label className="flex cursor-pointer items-center justify-center rounded-full border border-dashed border-[rgb(var(--border)/0.08)] bg-[rgb(var(--panel-soft)/0.34)] px-4 py-3 text-sm text-[rgb(var(--muted))] transition hover:bg-[rgb(var(--panel-soft)/0.62)]">
           <input type="file" accept=".txt" className="hidden" onChange={onMemoryUpload} />
           Upload .txt memory file
         </label>
@@ -284,7 +311,7 @@ export function AppSidebar({
                       onSelectMemory(memory.id);
                     }
                   }}
-                  className="rounded-[1rem] bg-[rgb(var(--panel-soft)/0.46)] px-3 py-2 transition hover:bg-[rgb(var(--panel-soft)/0.72)]"
+                  className="rounded-[1rem] bg-[rgb(var(--panel-soft)/0.42)] px-3 py-2 transition hover:bg-[rgb(var(--panel-soft)/0.66)]"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -314,7 +341,7 @@ export function AppSidebar({
           <LibraryBig className="h-4 w-4" />
           Dataset import
         </div>
-        <label className="flex cursor-pointer items-center justify-center rounded-full border border-dashed border-[rgb(var(--border)/0.08)] bg-[rgb(var(--panel-soft)/0.38)] px-4 py-3 text-sm text-[rgb(var(--muted))] transition hover:bg-[rgb(var(--panel-soft)/0.68)]">
+        <label className="flex cursor-pointer items-center justify-center rounded-full border border-dashed border-[rgb(var(--border)/0.08)] bg-[rgb(var(--panel-soft)/0.34)] px-4 py-3 text-sm text-[rgb(var(--muted))] transition hover:bg-[rgb(var(--panel-soft)/0.62)]">
           <input type="file" accept=".txt,.csv,.json,.jsonl" className="hidden" onChange={onDatasetUpload} />
           Upload dataset file
         </label>
@@ -342,7 +369,7 @@ export function AppSidebar({
                       onSelectDataset(dataset.id);
                     }
                   }}
-                  className="rounded-[1rem] bg-[rgb(var(--panel-soft)/0.46)] px-3 py-2 text-left transition hover:bg-[rgb(var(--panel-soft)/0.72)]"
+                  className="rounded-[1rem] bg-[rgb(var(--panel-soft)/0.42)] px-3 py-2 text-left transition hover:bg-[rgb(var(--panel-soft)/0.66)]"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -374,5 +401,3 @@ export function AppSidebar({
     </aside>
   );
 }
-
-

@@ -2,7 +2,6 @@
 
 import { useMemo, useState, type ReactNode } from "react";
 
-import clsx from "clsx";
 import { Check, Copy, SquareCode } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -64,7 +63,7 @@ function CodeBlock({ className, children, theme }: CodeBlockProps) {
   };
 
   return (
-    <div className="my-4 overflow-hidden rounded-[1.2rem] border border-[rgb(var(--border)/0.08)] bg-[rgb(var(--panel))]">
+    <div className="my-4 overflow-hidden rounded-[1rem] border border-[rgb(var(--border)/0.07)] bg-[rgb(var(--panel)/0.94)]">
       <div className="flex items-center justify-between gap-3 border-b border-[rgb(var(--border)/0.06)] px-3.5 py-2.5 text-xs text-[rgb(var(--muted))]">
         <div className="flex items-center gap-2 font-medium text-[rgb(var(--text))]">
           <SquareCode className="h-4 w-4" />
@@ -73,7 +72,7 @@ function CodeBlock({ className, children, theme }: CodeBlockProps) {
         <button
           type="button"
           onClick={handleCopy}
-          className="inline-flex items-center gap-2 rounded-full border border-[rgb(var(--border)/0.08)] bg-[rgb(var(--panel-soft))] px-2.5 py-1.25 text-xs font-medium text-[rgb(var(--text))] transition hover:scale-[1.01]"
+          className="inline-flex items-center gap-2 rounded-full border border-[rgb(var(--border)/0.08)] bg-[rgb(var(--panel-soft))] px-2.5 py-[5px] text-xs font-medium text-[rgb(var(--text))] transition hover:scale-[1.01]"
           aria-label="Copy code block"
         >
           {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
@@ -113,32 +112,32 @@ export function MarkdownContent({ content, theme }: MarkdownContentProps) {
         remarkPlugins={[remarkGfm]}
         components={{
           p({ children }) {
-            return <p className="mb-3 leading-7 last:mb-0">{children}</p>;
+            return <p className="mb-2.5 leading-7 last:mb-0">{children}</p>;
           },
           h1({ children }) {
-            return <h1 className="mb-3 text-2xl font-semibold leading-tight">{children}</h1>;
+            return <h1 className="mb-2.5 text-[1.55rem] font-semibold leading-tight">{children}</h1>;
           },
           h2({ children }) {
-            return <h2 className="mb-2.5 text-xl font-semibold leading-tight">{children}</h2>;
+            return <h2 className="mb-2 text-[1.25rem] font-semibold leading-tight">{children}</h2>;
           },
           h3({ children }) {
-            return <h3 className="mb-2.5 text-lg font-semibold leading-tight">{children}</h3>;
+            return <h3 className="mb-2 text-[1.08rem] font-semibold leading-tight">{children}</h3>;
           },
           h4({ children }) {
-            return <h4 className="mb-2 text-base font-semibold leading-tight">{children}</h4>;
+            return <h4 className="mb-2 text-[0.98rem] font-semibold leading-tight">{children}</h4>;
           },
           ul({ children }) {
-            return <ul className="mb-3 list-disc space-y-2 pl-6 leading-7">{children}</ul>;
+            return <ul className="mb-2.5 list-disc space-y-2 pl-6 leading-7">{children}</ul>;
           },
           ol({ children }) {
-            return <ol className="mb-3 list-decimal space-y-2 pl-6 leading-7">{children}</ol>;
+            return <ol className="mb-2.5 list-decimal space-y-2 pl-6 leading-7">{children}</ol>;
           },
           li({ children }) {
             return <li className="pl-1">{children}</li>;
           },
           blockquote({ children }) {
             return (
-              <blockquote className="mb-3 border-l-4 border-[rgb(var(--accent))] pl-4 italic text-[rgb(var(--muted))]">
+              <blockquote className="mb-2.5 border-l-4 border-[rgb(var(--accent))] pl-4 italic text-[rgb(var(--muted))]">
                 {children}
               </blockquote>
             );
@@ -154,11 +153,11 @@ export function MarkdownContent({ content, theme }: MarkdownContentProps) {
             );
           },
           hr() {
-            return <hr className="my-5 border-[rgb(var(--border)/0.08)]" />;
+            return <hr className="my-4 border-[rgb(var(--border)/0.08)]" />;
           },
           table({ children }) {
             return (
-              <div className="my-4 overflow-x-auto rounded-[1.1rem] border border-[rgb(var(--border)/0.08)]">
+              <div className="my-3 overflow-x-auto rounded-[1rem] border border-[rgb(var(--border)/0.08)]">
                 <table className="min-w-full border-collapse text-left text-sm">{children}</table>
               </div>
             );

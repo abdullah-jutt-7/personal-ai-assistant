@@ -48,7 +48,6 @@ export default function Page() {
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<number | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>(starterMessages);
-  const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [status, setStatus] = useState("Checking local backend...");
   const [conversationSearch, setConversationSearch] = useState("");
@@ -59,7 +58,12 @@ export default function Page() {
   const [memoryDraftName, setMemoryDraftName] = useState("");
   const [memoryDraftText, setMemoryDraftText] = useState("");
   const [memoryEditStatus, setMemoryEditStatus] = useState("");
-  const [thinkingText, setThinkingText] = useState("");
+  const [reasoningDrawerOpen, setReasoningDrawerOpen] = useState(false);
+  const [selectedReasoningText, setSelectedReasoningText] = useState("");
+  const [selectedReasoningSeconds, setSelectedReasoningSeconds] = useState<number | null>(null);
+  const [liveReasoningText, setLiveReasoningText] = useState("");
+  const [liveReasoningSeconds, setLiveReasoningSeconds] = useState<number | null>(null);
+  const [isAssistantStreaming, setIsAssistantStreaming] = useState(false);
   const [theme, setTheme] = useState<Theme>("dark");
   const [activeModel, setActiveModel] = useState("qwen3:4b");
   const [installedModels, setInstalledModels] = useState<InstalledModel[]>([]);
@@ -74,6 +78,7 @@ export default function Page() {
   const [datasetDraftDescription, setDatasetDraftDescription] = useState("");
   const [datasetEditStatus, setDatasetEditStatus] = useState("");
   const [isChatAtBottom, setIsChatAtBottom] = useState(true);
+  const reasoningStartedAtRef = useRef<number | null>(null);
   const filteredConversations = useMemo(() => {
     const query = conversationSearch.trim().toLowerCase();
     if (!query) return conversations;
@@ -134,21 +139,58 @@ export default function Page() {
 
   useEffect(() => {
     void bootstrap();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleChatScroll = () => {
+  useEffect(() => {
+    if (!isAssistantStreaming || reasoningStartedAtRef.current === null) return;
+
+    const syncElapsed = () => {
+      const startedAt = reasoningStartedAtRef.current;
+      if (startedAt === null) return;
+      const elapsed = Math.max(1, Math.floor((Date.now() - startedAt) / 1000));
+      setLiveReasoningSeconds(elapsed);
+    };
+
+    syncElapsed();
+    const timer = window.setInterval(syncElapsed, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [isAssistantStreaming]);
+
+  useEffect(() => {
+    if (!reasoningDrawerOpen || !isAssistantStreaming) return;
+    setSelectedReasoningText(liveReasoningText);
+    setSelectedReasoningSeconds(liveReasoningSeconds);
+  }, [isAssistantStreaming, liveReasoningSeconds, liveReasoningText, reasoningDrawerOpen]);
+
+  const updateChatBottomState = () => {
     const container = chatScrollRef.current;
     if (!container) return;
-
-    if (isProgrammaticScrollRef.current) {
-      return;
-    }
 
     const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
     const nextAtBottom = distanceFromBottom < 24;
     isChatAtBottomRef.current = nextAtBottom;
     setIsChatAtBottom((current) => (current === nextAtBottom ? current : nextAtBottom));
   };
+
+  useEffect(() => {
+    const container = chatScrollRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      if (isProgrammaticScrollRef.current) {
+        return;
+      }
+      updateChatBottomState();
+    };
+
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    updateChatBottomState();
+
+    return () => {
+      container.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
 
   const scrollChatToBottom = () => {
     const container = chatScrollRef.current;
@@ -256,6 +298,12 @@ export default function Page() {
     const data = (await res.json()) as ChatMessage[];
     setMessages(data.length ? data : starterMessages);
     setActiveConversationId(conversationId);
+    setReasoningDrawerOpen(false);
+    setSelectedReasoningText("");
+    setSelectedReasoningSeconds(null);
+    setLiveReasoningText("");
+    setLiveReasoningSeconds(null);
+    setIsAssistantStreaming(false);
     if (isCompactViewport) setSidebarOpen(false);
   }
 
@@ -266,6 +314,12 @@ export default function Page() {
     setConversations((current) => [data, ...current]);
     setActiveConversationId(data.id);
     setMessages(starterMessages);
+    setReasoningDrawerOpen(false);
+    setSelectedReasoningText("");
+    setSelectedReasoningSeconds(null);
+    setLiveReasoningText("");
+    setLiveReasoningSeconds(null);
+    setIsAssistantStreaming(false);
     if (isCompactViewport) setSidebarOpen(false);
   }
 
@@ -327,14 +381,22 @@ export default function Page() {
     }
   }
 
-  async function sendMessage() {
-    const trimmed = input.trim();
+  async function sendMessage(messageText: string) {
+    const trimmed = messageText.trim();
     if (!trimmed || isSending) return;
 
+    const startedAt = Date.now();
+    let streamingReasoningText = "";
+
     setMessages((current) => [...current, { role: "user", content: trimmed }]);
-    setInput("");
     setIsSending(true);
-    setThinkingText("");
+    setReasoningDrawerOpen(false);
+    setSelectedReasoningText("");
+    setSelectedReasoningSeconds(null);
+    setLiveReasoningText("");
+    setLiveReasoningSeconds(0);
+    setIsAssistantStreaming(true);
+    reasoningStartedAtRef.current = startedAt;
     scheduleChatScrollToBottom("auto", true);
 
     let assistantIndex = -1;
@@ -416,13 +478,16 @@ export default function Page() {
           if (eventName === "meta" && payload.conversation_id) {
             setActiveConversationId(payload.conversation_id);
           } else if (eventName === "thinking" && payload.delta) {
-            setThinkingText((current) => `${current}${payload.delta}`);
+            streamingReasoningText += payload.delta;
+            setLiveReasoningText(streamingReasoningText);
           } else if (eventName === "content" && payload.delta) {
             applyDelta(payload.delta);
           } else if (eventName === "done") {
             if (payload.conversation_id) {
               setActiveConversationId(payload.conversation_id);
             }
+            const finalThinkingText = (payload.thinking?.trim() || streamingReasoningText.trim()).trim();
+            const thoughtSeconds = Math.max(1, Math.round((Date.now() - startedAt) / 1000));
             if (typeof payload.response === "string") {
               setMessages((current) => {
                 if (assistantIndex < 0 || !current[assistantIndex]) return current;
@@ -430,11 +495,17 @@ export default function Page() {
                 next[assistantIndex] = {
                   ...next[assistantIndex],
                   content: payload.response ?? "",
+                  reasoning_text: finalThinkingText || undefined,
+                  reasoning_seconds: finalThinkingText ? thoughtSeconds : undefined,
                 };
                 return next;
               });
               scheduleChatScrollToBottom("auto", true);
             }
+            setLiveReasoningText(finalThinkingText);
+            setLiveReasoningSeconds(thoughtSeconds);
+            setIsAssistantStreaming(false);
+            reasoningStartedAtRef.current = null;
           } else if (eventName === "error") {
             throw new Error(payload.detail || "Streaming failed");
           }
@@ -475,8 +546,15 @@ export default function Page() {
       console.error(error);
     } finally {
       setIsSending(false);
-      setThinkingText("");
+      setIsAssistantStreaming(false);
+      reasoningStartedAtRef.current = null;
     }
+  }
+
+  function openReasoningDrawer(reasoningText: string, reasoningSeconds: number) {
+    setSelectedReasoningText(reasoningText);
+    setSelectedReasoningSeconds(reasoningSeconds);
+    setReasoningDrawerOpen(true);
   }
 
   async function onMemoryUpload(event: ChangeEvent<HTMLInputElement>) {
@@ -794,58 +872,73 @@ export default function Page() {
         />
       )}
       <div
-        className="flex h-full min-h-0 w-full gap-[clamp(10px,1vw,22px)]"
-        style={{ padding: "clamp(8px, 0.75vw, 20px)" }}
+        className="flex h-full min-h-0 w-full gap-0"
       >
-        <AppSidebar
-          conversations={filteredConversations}
-          datasets={datasets}
-          memories={memorySources}
-          activeConversationId={activeConversationId}
-          conversationSearch={conversationSearch}
-          memoryFileName={memoryFileName}
-          datasetFileName={datasetFileName}
-          isCompactViewport={isCompactViewport}
-          sidebarOpen={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
-          onNewConversation={startNewConversation}
-          onSelectConversation={loadConversation}
-          onConversationSearchChange={setConversationSearch}
-          onRenameConversation={renameConversation}
-          onDeleteConversation={deleteConversation}
-          onMemoryUpload={onMemoryUpload}
-          onDeleteMemory={deleteMemory}
-          onSelectMemory={openMemoryDetails}
-          onDatasetUpload={onDatasetUpload}
-          onDeleteDataset={deleteDataset}
-          onSelectDataset={openDatasetDetails}
-        />
+        {sidebarOpen && (
+          <AppSidebar
+            conversations={filteredConversations}
+            datasets={datasets}
+            memories={memorySources}
+            activeConversationId={activeConversationId}
+            conversationSearch={conversationSearch}
+            memoryFileName={memoryFileName}
+            datasetFileName={datasetFileName}
+            sidebarOpen={sidebarOpen}
+            onToggleSidebar={() => setSidebarOpen((current) => !current)}
+            onNewConversation={startNewConversation}
+            onSelectConversation={loadConversation}
+            onConversationSearchChange={setConversationSearch}
+            onRenameConversation={renameConversation}
+            onDeleteConversation={deleteConversation}
+            onMemoryUpload={onMemoryUpload}
+            onDeleteMemory={deleteMemory}
+            onSelectMemory={openMemoryDetails}
+            onDatasetUpload={onDatasetUpload}
+            onDeleteDataset={deleteDataset}
+            onSelectDataset={openDatasetDetails}
+          />
+        )}
 
-        <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+        <section
+          className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden transition-[margin] duration-200 ease-out"
+          style={{
+            marginLeft: sidebarOpen && !isCompactViewport ? "clamp(308px, 21vw, 392px)" : "0px",
+          }}
+        >
           <ChatHeader
             accentText={accentText}
             activeModel={activeModel}
             installedModels={installedModels}
-            isCompactViewport={isCompactViewport}
+            sidebarOpen={sidebarOpen}
             theme={theme}
-            onOpenSidebar={() => setSidebarOpen(true)}
+            onToggleSidebar={() => setSidebarOpen((current) => !current)}
             onRefreshModels={refreshInstalledModels}
             onSelectModel={selectModel}
             onToggleTheme={handleToggleTheme}
           />
 
-          <div className="mx-auto flex min-h-0 w-full max-w-[760px] flex-1 flex-col">
-            <ThinkingPanel thinkingText={thinkingText} />
-
+          <div className="mx-auto flex min-h-0 w-full max-w-[920px] flex-1 flex-col">
             <div
               ref={chatScrollRef}
-              onScroll={handleChatScroll}
-              className="scrollbar-hide min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-[clamp(16px,1.2vw,24px)] py-[clamp(16px,1.55vw,28px)]"
+              className="scrollbar-hide min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-[clamp(18px,1.5vw,30px)] py-[clamp(18px,1.6vw,30px)]"
             >
-              <MessageList messages={messages} theme={theme} />
+              <MessageList
+                messages={messages}
+                theme={theme}
+                onOpenReasoning={openReasoningDrawer}
+                streamingReasoningText={liveReasoningText}
+                streamingReasoningSeconds={liveReasoningSeconds}
+                isStreamingAssistant={isAssistantStreaming}
+              />
             </div>
 
             <div className="relative">
+              <ThinkingPanel
+                reasoningText={selectedReasoningText}
+                reasoningSeconds={selectedReasoningSeconds}
+                isOpen={reasoningDrawerOpen}
+                onClose={() => setReasoningDrawerOpen(false)}
+              />
               {!isChatAtBottom && (
                 <button
                   type="button"
@@ -858,9 +951,7 @@ export default function Page() {
               )}
               <Composer
                 activeModel={activeModel}
-                input={input}
                 isSending={isSending}
-                onChange={setInput}
                 onSend={sendMessage}
               />
             </div>
@@ -868,7 +959,7 @@ export default function Page() {
         </section>
 
         {(selectedDataset || selectedMemory) && (
-          <aside className="app-panel hidden min-h-0 w-[clamp(280px,20vw,360px)] flex-col overflow-hidden rounded-[2rem] xl:flex">
+          <aside className="app-panel hidden min-h-0 w-[clamp(300px,20vw,360px)] flex-col overflow-hidden rounded-[2rem] xl:flex">
             <div className="border-b border-[rgb(var(--border)/0.1)] px-[clamp(16px,1.1vw,24px)] py-[clamp(14px,1vw,18px)]">
               <p className="text-xs uppercase tracking-[0.3em] text-[rgb(var(--muted))]">
                 {selectedDataset ? "Dataset details" : "Memory details"}

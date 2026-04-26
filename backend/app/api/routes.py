@@ -1,6 +1,7 @@
 from datetime import datetime
 import json
 from pathlib import Path
+from time import monotonic
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
@@ -57,6 +58,19 @@ from backend.app.services.user_settings import get_theme_setting, set_theme_sett
 
 
 router = APIRouter(prefix="/api", tags=["api"])
+
+
+def derive_conversation_title(message_text: str) -> str:
+    compact = " ".join(message_text.strip().split())
+    if not compact:
+        return "New conversation"
+
+    max_length = 48
+    if len(compact) <= max_length:
+        return compact
+
+    truncated = compact[: max_length - 1].rsplit(" ", 1)[0].strip()
+    return truncated or compact[: max_length - 1].rstrip()
 
 
 @router.get("/health")
@@ -194,6 +208,8 @@ def get_conversation(conversation_id: int, db: Session = Depends(get_db)):
             id=message.id,
             role=message.role,
             content=message.content,
+            reasoning_text=message.reasoning_text,
+            reasoning_seconds=message.reasoning_seconds,
             created_at=message.created_at.isoformat(),
         )
         for message in messages
@@ -297,10 +313,13 @@ async def chat(request: ChatRequest, db: Session = Depends(get_db)):
         if conversation is None:
             raise HTTPException(status_code=404, detail="Conversation not found")
     else:
-        conversation = Conversation(title=message_text[:48] or "New conversation")
+        conversation = Conversation(title=derive_conversation_title(message_text))
         db.add(conversation)
         db.commit()
         db.refresh(conversation)
+
+    if conversation.title == "New conversation":
+        conversation.title = derive_conversation_title(message_text)
 
     user_message = Message(
         conversation_id=conversation.id,
@@ -344,6 +363,8 @@ async def chat(request: ChatRequest, db: Session = Depends(get_db)):
         conversation_id=conversation.id,
         role="assistant",
         content=assistant_text,
+        reasoning_text=None,
+        reasoning_seconds=None,
     )
     db.add(assistant_message)
     conversation.updated_at = datetime.utcnow()
@@ -364,10 +385,13 @@ async def chat_stream(request: ChatRequest, db: Session = Depends(get_db)):
         if conversation is None:
             raise HTTPException(status_code=404, detail="Conversation not found")
     else:
-        conversation = Conversation(title=message_text[:48] or "New conversation")
+        conversation = Conversation(title=derive_conversation_title(message_text))
         db.add(conversation)
         db.commit()
         db.refresh(conversation)
+
+    if conversation.title == "New conversation":
+        conversation.title = derive_conversation_title(message_text)
 
     user_message = Message(
         conversation_id=conversation.id,
@@ -400,6 +424,7 @@ async def chat_stream(request: ChatRequest, db: Session = Depends(get_db)):
     async def event_stream():
         assistant_parts: list[str] = []
         thinking_parts: list[str] = []
+        stream_started_at = monotonic()
 
         try:
             yield sse(
@@ -424,11 +449,15 @@ async def chat_stream(request: ChatRequest, db: Session = Depends(get_db)):
                     yield sse("content", {"delta": piece["delta"]})
                 elif piece["type"] == "done":
                     assistant_text = "".join(assistant_parts).strip()
+                    reasoning_text = "".join(thinking_parts).strip()
+                    reasoning_seconds = max(1, round(monotonic() - stream_started_at))
                     if assistant_text:
                         assistant_message = Message(
                             conversation_id=conversation.id,
                             role="assistant",
                             content=assistant_text,
+                            reasoning_text=reasoning_text or None,
+                            reasoning_seconds=reasoning_seconds if reasoning_text else None,
                         )
                         db.add(assistant_message)
                         conversation.updated_at = datetime.utcnow()

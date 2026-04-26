@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-import { ChevronDown, Menu, MoonStar, RefreshCw, SunMedium } from "lucide-react";
+import { ChevronDown, PanelLeftClose, PanelLeftOpen, MoonStar, RefreshCw, SunMedium } from "lucide-react";
 
 import type { InstalledModel, Theme } from "@/lib/chat-types";
 
@@ -8,9 +8,9 @@ type ChatHeaderProps = {
   accentText: string;
   activeModel: string;
   installedModels: InstalledModel[];
-  isCompactViewport: boolean;
+  sidebarOpen: boolean;
   theme: Theme;
-  onOpenSidebar: () => void;
+  onToggleSidebar: () => void;
   onRefreshModels: () => void;
   onSelectModel: (modelName: string) => void;
   onToggleTheme: () => void;
@@ -20,9 +20,9 @@ export function ChatHeader({
   accentText,
   activeModel,
   installedModels,
-  isCompactViewport,
+  sidebarOpen,
   theme,
-  onOpenSidebar,
+  onToggleSidebar,
   onRefreshModels,
   onSelectModel,
   onToggleTheme,
@@ -42,28 +42,26 @@ export function ChatHeader({
   }, []);
 
   return (
-    <header className="flex items-center justify-between border-b border-[rgb(var(--border)/0.045)] px-[clamp(16px,1.3vw,28px)] py-[clamp(12px,0.85vw,16px)]">
+    <header className="flex items-center justify-between border-b border-[rgb(var(--border)/0.045)] px-[clamp(16px,1.3vw,28px)] py-[clamp(12px,0.85vw,16px)] backdrop-blur-sm">
       <div className="flex items-center gap-3">
-        {isCompactViewport && (
-          <button
-            type="button"
-            onClick={onOpenSidebar}
-            className="rounded-full bg-[rgb(var(--panel-soft)/0.72)] p-2 text-[rgb(var(--text))]"
-            aria-label="Open sidebar"
-          >
-            <Menu className="h-4 w-4" />
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={onToggleSidebar}
+          className="rounded-full bg-[rgb(var(--panel-soft)/0.72)] p-2 text-[rgb(var(--text))]"
+          aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
+        >
+          {sidebarOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeftOpen className="h-4 w-4" />}
+        </button>
         <div>
           <p className="text-[10px] uppercase tracking-[0.28em] text-[rgb(var(--muted))]">
             Local AI workspace
           </p>
-          <h2 className="mt-1 text-[1.55rem] font-semibold leading-none">IntelliText</h2>
+          <h2 className="mt-1 text-[1.45rem] font-semibold leading-none tracking-[-0.02em]">IntelliText</h2>
         </div>
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="rounded-full bg-[rgb(var(--panel-soft)/0.62)] px-3 py-1.25 text-[10px] text-[rgb(var(--muted))]">
+        <div className="rounded-full bg-[rgb(var(--panel-soft)/0.62)] px-3 py-[5px] text-[10px] text-[rgb(var(--muted))]">
           {accentText}
         </div>
         <button
@@ -79,7 +77,7 @@ export function ChatHeader({
           <button
             type="button"
             onClick={() => setModelMenuOpen((current) => !current)}
-            className="inline-flex items-center gap-2 rounded-full bg-[rgb(var(--panel-soft)/0.62)] px-3 py-1.25 text-[10px] font-medium uppercase tracking-[0.14em] text-[rgb(var(--text))] transition hover:scale-[1.01]"
+            className="inline-flex items-center gap-2 rounded-full bg-[rgb(var(--panel-soft)/0.62)] px-3 py-[5px] text-[10px] font-medium uppercase tracking-[0.14em] text-[rgb(var(--text))] transition hover:scale-[1.01]"
             aria-haspopup="menu"
             aria-expanded={modelMenuOpen}
           >

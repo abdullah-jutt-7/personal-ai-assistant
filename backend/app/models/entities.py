@@ -32,6 +32,8 @@ class Message(Base):
     conversation_id: Mapped[int] = mapped_column(ForeignKey("conversations.id"), index=True)
     role: Mapped[str] = mapped_column(String(32))
     content: Mapped[str] = mapped_column(Text)
+    reasoning_text: Mapped[str | None] = mapped_column(Text, nullable=True, default=None)
+    reasoning_seconds: Mapped[int | None] = mapped_column(Integer, nullable=True, default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
 
     conversation: Mapped["Conversation"] = relationship(back_populates="messages")
