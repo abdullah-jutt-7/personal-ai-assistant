@@ -268,6 +268,7 @@ We will implement the project in stages.
 - Keep the frontend and backend broken into feature-based modules and reusable components; avoid large monolithic files except for short-lived scaffolds.
 - Prefer small components for sidebar, chat header, theme toggle, message list, composer, memory upload, and status badges.
 - If a decision affects installer size, offline support, or user setup, treat it as a product decision, not just a code decision.
+- After every code change, include a short commit-message-style `feat:` line in the response so git tracking stays easy.
 
 ## Current Status
 
@@ -302,6 +303,18 @@ Repo status:
 - This file now defines the working direction.
 - The current UI polish pass should keep reducing card clutter and emphasizing open, list-like surfaces.
 - The current UI polish pass is actively flattening the sidebar, composer, and chat chrome so the app feels closer to a minimal reference AI interface.
+- Startup now uses a loading/error overlay with retry instead of a static ready message.
+- New conversations now start cleanly without the canned greeting message.
+- Chat autoscroll now only jumps to the bottom when sending a message, then leaves reading control to the user.
+
+## Open Product Notes
+
+These are active product-direction reminders for the next UI and behavior pass:
+
+- Do not show the starter greeting message every time the user starts a new conversation. New conversations should begin cleanly unless the backend has real chat history to show.
+- Replace the always-on `IntelliText ready on local backend` header text with a stronger readiness flow. The app should show a loading state while backend/model readiness is being checked, and it should surface a friendly retry/error UI if the check fails.
+- Move memory upload and dataset import out of the sidebar and into a lighter profile-style popup or header widget area near the model/theme controls. Keep the entry points minimal, with optional info affordances.
+- Change chat scrolling behavior so the conversation only auto-jumps to the bottom when the user sends a message. After that, the user should control reading progress with the existing jump-to-bottom button instead of the app forcing the view to stay pinned to the latest token.
 
 Immediate next step:
 - Build the first end-to-end experience for memory injection and dataset management on top of the scaffold.

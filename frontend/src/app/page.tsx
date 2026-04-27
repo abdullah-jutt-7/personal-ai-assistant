@@ -28,14 +28,6 @@ import type {
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8000";
 const themeStorageKey = "personalaiasisstant-theme";
 
-const starterMessages: ChatMessage[] = [
-  {
-    role: "assistant",
-    content:
-      "Hi, I am IntelliText. I am here to help with chat, memory, datasets, and future local AI workflows.",
-  },
-];
-
 type StreamPayload = {
   conversation_id?: number;
   delta?: string;
@@ -47,9 +39,10 @@ type StreamPayload = {
 export default function Page() {
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<number | null>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>(starterMessages);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isSending, setIsSending] = useState(false);
-  const [status, setStatus] = useState("Checking local backend...");
+  const [bootstrapState, setBootstrapState] = useState<"loading" | "ready" | "error">("loading");
+  const [bootstrapError, setBootstrapError] = useState<string | null>(null);
   const [conversationSearch, setConversationSearch] = useState("");
   const [memoryFileName, setMemoryFileName] = useState<string | null>(null);
   const [datasetFileName, setDatasetFileName] = useState<string | null>(null);
@@ -167,10 +160,10 @@ export default function Page() {
     const container = chatScrollRef.current;
     if (!container) return;
 
-    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
-    const nextAtBottom = distanceFromBottom < 24;
-    isChatAtBottomRef.current = nextAtBottom;
-    setIsChatAtBottom((current) => (current === nextAtBottom ? current : nextAtBottom));
+      const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+      const nextAtBottom = distanceFromBottom < 24;
+      isChatAtBottomRef.current = nextAtBottom;
+      setIsChatAtBottom((current) => (current === nextAtBottom ? current : nextAtBottom));
   };
 
   useEffect(() => {
@@ -232,23 +225,35 @@ export default function Page() {
   };
 
   async function bootstrap() {
+    setBootstrapState("loading");
+    setBootstrapError(null);
     try {
-      const [healthRes, convRes, datasetRes, memoryRes, themeRes, modelRes] = await Promise.all([
+      const [healthRes, convRes, datasetRes, memoryRes, themeRes] = await Promise.all([
         fetch(`${apiBaseUrl}/api/health`),
         fetch(`${apiBaseUrl}/api/conversations`),
         fetch(`${apiBaseUrl}/api/datasets`),
         fetch(`${apiBaseUrl}/api/memory`),
         fetch(`${apiBaseUrl}/api/settings/theme`),
-        fetch(`${apiBaseUrl}/api/settings/model`),
       ]);
+
+      if (!healthRes.ok) {
+        throw new Error(`Health check failed with status ${healthRes.status}`);
+      }
+      if (!convRes.ok || !datasetRes.ok || !memoryRes.ok || !themeRes.ok) {
+        throw new Error("One or more startup requests failed");
+      }
 
       const health = await healthRes.json();
       const convData = (await convRes.json()) as ConversationSummary[];
       const datasetData = (await datasetRes.json()) as DatasetSummary[];
       const memoryData = (await memoryRes.json()) as MemorySummary[];
       const themeData = (await themeRes.json()) as ThemeSettings;
-      const modelData = (await modelRes.json()) as ModelSettings;
       let modelsData: InstalledModel[] = [];
+      const modelRes = await fetch(`${apiBaseUrl}/api/settings/model`);
+      if (!modelRes.ok) {
+        throw new Error(`Model settings request failed with status ${modelRes.status}`);
+      }
+      const modelData = (await modelRes.json()) as ModelSettings;
 
       try {
         const modelsRes = await fetch(`${apiBaseUrl}/api/models`);
@@ -259,7 +264,6 @@ export default function Page() {
         console.error(error);
       }
 
-      setStatus(`${health.assistant} ready on local backend`);
       const nextModel = modelData.ollama_model ?? health.model ?? "qwen3:4b";
       setActiveModel(nextModel);
       if (themeData.theme === "dark" || themeData.theme === "light") {
@@ -283,9 +287,13 @@ export default function Page() {
         const first = convData[0];
         setActiveConversationId(first.id);
         await loadConversation(first.id);
+      } else {
+        setMessages([]);
       }
+      setBootstrapState("ready");
     } catch {
-      setStatus("Backend not connected yet");
+      setBootstrapState("error");
+      setBootstrapError("We could not reach the local backend or load the current assistant state.");
       setConversations([]);
       setConversationSearch("");
       setInstalledModels([]);
@@ -296,7 +304,7 @@ export default function Page() {
     const res = await fetch(`${apiBaseUrl}/api/conversations/${conversationId}`);
     if (!res.ok) return;
     const data = (await res.json()) as ChatMessage[];
-    setMessages(data.length ? data : starterMessages);
+    setMessages(data);
     setActiveConversationId(conversationId);
     setReasoningDrawerOpen(false);
     setSelectedReasoningText("");
@@ -313,7 +321,7 @@ export default function Page() {
     const data = (await res.json()) as ConversationSummary;
     setConversations((current) => [data, ...current]);
     setActiveConversationId(data.id);
-    setMessages(starterMessages);
+    setMessages([]);
     setReasoningDrawerOpen(false);
     setSelectedReasoningText("");
     setSelectedReasoningSeconds(null);
@@ -370,10 +378,12 @@ export default function Page() {
 
       if (activeConversationId === data.conversation_id) {
         setActiveConversationId(null);
-        setMessages(starterMessages);
+        setMessages([]);
 
         if (fallbackConversationId !== null) {
           await loadConversation(fallbackConversationId);
+        } else {
+          setMessages([]);
         }
       }
     } catch (error) {
@@ -397,7 +407,6 @@ export default function Page() {
     setLiveReasoningSeconds(0);
     setIsAssistantStreaming(true);
     reasoningStartedAtRef.current = startedAt;
-    scheduleChatScrollToBottom("auto", true);
 
     let assistantIndex = -1;
 
@@ -441,7 +450,6 @@ export default function Page() {
           };
           return next;
         });
-        scheduleChatScrollToBottom("auto", true);
       };
 
       const parseEventBlock = (block: string) => {
@@ -500,7 +508,6 @@ export default function Page() {
                 };
                 return next;
               });
-              scheduleChatScrollToBottom("auto", true);
             }
             setLiveReasoningText(finalThinkingText);
             setLiveReasoningSeconds(thoughtSeconds);
@@ -828,20 +835,16 @@ export default function Page() {
 
       const data = (await res.json()) as ModelSettings;
       setActiveModel(data.ollama_model);
-      const healthRes = await fetch(`${apiBaseUrl}/api/health`);
-      if (healthRes.ok) {
-        const health = await healthRes.json();
-        setStatus(`${health.assistant} ready on local backend`);
-      }
     } catch (error) {
       console.error(error);
     }
   }
 
-  const accentText = useMemo(
-    () => (isSending ? "IntelliText is thinking..." : status),
-    [isSending, status],
-  );
+  const accentText = useMemo(() => {
+    if (bootstrapState === "loading") return "Connecting...";
+    if (bootstrapState === "error") return "Connection issue";
+    return isSending ? "IntelliText is thinking..." : "Ready";
+  }, [bootstrapState, isSending]);
 
   async function handleToggleTheme() {
     const nextTheme = theme === "dark" ? "light" : "dark";
@@ -918,18 +921,70 @@ export default function Page() {
           />
 
           <div className="mx-auto flex min-h-0 w-full max-w-[920px] flex-1 flex-col">
-            <div
-              ref={chatScrollRef}
-              className="scrollbar-hide min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-[clamp(18px,1.5vw,30px)] py-[clamp(18px,1.6vw,30px)]"
-            >
-              <MessageList
-                messages={messages}
-                theme={theme}
-                onOpenReasoning={openReasoningDrawer}
-                streamingReasoningText={liveReasoningText}
-                streamingReasoningSeconds={liveReasoningSeconds}
-                isStreamingAssistant={isAssistantStreaming}
-              />
+            <div className="relative min-h-0 flex-1">
+              <div
+                ref={chatScrollRef}
+                className="scrollbar-hide min-h-0 h-full overflow-y-auto overflow-x-hidden px-[clamp(18px,1.5vw,30px)] py-[clamp(18px,1.6vw,30px)]"
+              >
+                <MessageList
+                  messages={messages}
+                  theme={theme}
+                  onOpenReasoning={openReasoningDrawer}
+                  streamingReasoningText={liveReasoningText}
+                  streamingReasoningSeconds={liveReasoningSeconds}
+                  isStreamingAssistant={isAssistantStreaming}
+                />
+                {messages.length === 0 && bootstrapState === "ready" && (
+                  <div className="flex min-h-[40vh] items-center justify-center px-6 py-10">
+                    <div className="max-w-lg text-center">
+                      <p className="text-sm uppercase tracking-[0.28em] text-[rgb(var(--muted))]">
+                        Ready for a new conversation
+                      </p>
+                      <h3 className="mt-3 text-2xl font-semibold tracking-[-0.02em]">
+                        Ask IntelliText anything to begin.
+                      </h3>
+                      <p className="mt-3 text-sm leading-6 text-[rgb(var(--muted))]">
+                        Your conversation will appear here after you send the first message.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {(bootstrapState === "loading" || bootstrapState === "error") && (
+                <div className="absolute inset-0 z-30 flex items-center justify-center px-6">
+                  <div className="w-full max-w-md rounded-[1.75rem] border border-[rgb(var(--border)/0.08)] bg-[rgb(var(--panel)/0.96)] p-6 text-center shadow-[0_20px_50px_rgba(0,0,0,0.14)] backdrop-blur-xl">
+                    {bootstrapState === "loading" ? (
+                      <>
+                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[rgb(var(--panel-soft)/0.72)]">
+                          <div className="h-5 w-5 animate-spin rounded-full border-2 border-[rgb(var(--muted)/0.35)] border-t-[rgb(var(--accent))]" />
+                        </div>
+                        <h3 className="mt-4 text-xl font-semibold">Starting IntelliText</h3>
+                        <p className="mt-2 text-sm leading-6 text-[rgb(var(--muted))]">
+                          Checking the local backend, model settings, memory, and datasets.
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[rgb(var(--panel-soft)/0.72)] text-[rgb(var(--accent))]">
+                          !
+                        </div>
+                        <h3 className="mt-4 text-xl font-semibold">Could not load IntelliText</h3>
+                        <p className="mt-2 text-sm leading-6 text-[rgb(var(--muted))]">
+                          {bootstrapError ?? "The local backend did not respond in time."}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => void bootstrap()}
+                          className="mt-5 inline-flex items-center justify-center rounded-full bg-[rgb(var(--accent))] px-4 py-2 text-sm font-semibold text-white"
+                        >
+                          Try again
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="relative">
