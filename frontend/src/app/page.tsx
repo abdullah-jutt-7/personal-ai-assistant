@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
-import { ArrowDown, Bot } from "lucide-react";
+import { ArrowDown, Bot, X } from "lucide-react";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { ChatHeader } from "@/components/chat-header";
@@ -562,6 +562,7 @@ export default function Page() {
   }
 
   async function onMemoryUpload(event: ChangeEvent<HTMLInputElement>) {
+    const input = event.currentTarget;
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -595,10 +596,13 @@ export default function Page() {
     } catch (error) {
       console.error(error);
       setMemoryFileName("Upload failed");
+    } finally {
+      input.value = "";
     }
   }
 
   async function onDatasetUpload(event: ChangeEvent<HTMLInputElement>) {
+    const input = event.currentTarget;
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -633,6 +637,8 @@ export default function Page() {
     } catch (error) {
       console.error(error);
       setDatasetFileName("Upload failed");
+    } finally {
+      input.value = "";
     }
   }
 
@@ -762,6 +768,17 @@ export default function Page() {
     }
   }
 
+  function closeDetailsPanel() {
+    setSelectedDataset(null);
+    setSelectedMemory(null);
+    setDatasetDraftName("");
+    setDatasetDraftDescription("");
+    setDatasetEditStatus("");
+    setMemoryDraftName("");
+    setMemoryDraftText("");
+    setMemoryEditStatus("");
+  }
+
   async function saveDatasetDetails() {
     if (!selectedDataset) return;
 
@@ -881,8 +898,6 @@ export default function Page() {
             memories={memorySources}
             activeConversationId={activeConversationId}
             conversationSearch={conversationSearch}
-            memoryFileName={memoryFileName}
-            datasetFileName={datasetFileName}
             sidebarOpen={sidebarOpen}
             onToggleSidebar={() => setSidebarOpen((current) => !current)}
             onNewConversation={startNewConversation}
@@ -890,10 +905,8 @@ export default function Page() {
             onConversationSearchChange={setConversationSearch}
             onRenameConversation={renameConversation}
             onDeleteConversation={deleteConversation}
-            onMemoryUpload={onMemoryUpload}
             onDeleteMemory={deleteMemory}
             onSelectMemory={openMemoryDetails}
-            onDatasetUpload={onDatasetUpload}
             onDeleteDataset={deleteDataset}
             onSelectDataset={openDatasetDetails}
           />
@@ -909,12 +922,16 @@ export default function Page() {
             accentText={accentText}
             activeModel={activeModel}
             installedModels={installedModels}
+            datasetFileName={datasetFileName}
+            memoryFileName={memoryFileName}
             sidebarOpen={sidebarOpen}
             theme={theme}
             onToggleSidebar={() => setSidebarOpen((current) => !current)}
             onRefreshModels={refreshInstalledModels}
             onSelectModel={selectModel}
             onToggleTheme={handleToggleTheme}
+            onMemoryUpload={onMemoryUpload}
+            onDatasetUpload={onDatasetUpload}
           />
 
           <div className="mx-auto flex min-h-0 w-full max-w-[920px] flex-1 flex-col">
@@ -1036,17 +1053,29 @@ export default function Page() {
         {(selectedDataset || selectedMemory) && (
           <aside className="app-panel hidden min-h-0 w-[clamp(300px,20vw,360px)] flex-col overflow-hidden rounded-[2rem] xl:flex">
             <div className="border-b border-[rgb(var(--border)/0.1)] px-[clamp(16px,1.1vw,24px)] py-[clamp(14px,1vw,18px)]">
-              <p className="text-xs uppercase tracking-[0.3em] text-[rgb(var(--muted))]">
-                {selectedDataset ? "Dataset details" : "Memory details"}
-              </p>
-              <h3 className="mt-1 text-xl font-semibold">
-                {selectedDataset ? selectedDataset.name : selectedMemory?.name}
-              </h3>
-              <p className="mt-2 text-sm leading-6 text-[rgb(var(--muted))]">
-                {selectedDataset
-                  ? selectedDataset.description || "No description provided."
-                  : selectedMemory?.original_filename || "No filename available."}
-              </p>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.3em] text-[rgb(var(--muted))]">
+                    {selectedDataset ? "Dataset details" : "Memory details"}
+                  </p>
+                  <h3 className="mt-1 text-xl font-semibold">
+                    {selectedDataset ? selectedDataset.name : selectedMemory?.name}
+                  </h3>
+                  <p className="mt-2 text-sm leading-6 text-[rgb(var(--muted))]">
+                    {selectedDataset
+                      ? selectedDataset.description || "No description provided."
+                      : selectedMemory?.original_filename || "No filename available."}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={closeDetailsPanel}
+                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[rgb(var(--border)/0.08)] bg-[rgb(var(--panel-soft)/0.76)] text-[rgb(var(--text))] transition hover:scale-[1.01]"
+                  aria-label="Close details panel"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
             </div>
             <div className="min-h-0 flex-1 overflow-auto px-[clamp(16px,1.1vw,24px)] py-[clamp(14px,1vw,18px)]">
               <div className="space-y-4 text-sm">

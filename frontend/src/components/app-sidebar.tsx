@@ -1,18 +1,17 @@
 ﻿import type { ChangeEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 
-import { EllipsisVertical, FilePenLine, FileText, LibraryBig, Plus, Search, Sparkles, Trash2, X } from "lucide-react";
+import { EllipsisVertical, FilePenLine, LibraryBig, Plus, Search, Sparkles, Trash2, X } from "lucide-react";
 
 import type { ConversationSummary, DatasetSummary, MemorySummary } from "@/lib/chat-types";
 
 type SidebarProps = {
+  _uploadEventType?: ChangeEvent<HTMLInputElement>;
   conversations: ConversationSummary[];
   datasets: DatasetSummary[];
   memories: MemorySummary[];
   activeConversationId: number | null;
   conversationSearch: string;
-  memoryFileName: string | null;
-  datasetFileName: string | null;
   sidebarOpen: boolean;
   onToggleSidebar: () => void;
   onNewConversation: () => void;
@@ -20,8 +19,6 @@ type SidebarProps = {
   onConversationSearchChange: (value: string) => void;
   onRenameConversation: (conversationId: number, currentTitle: string) => void;
   onDeleteConversation: (conversationId: number) => void;
-  onMemoryUpload: (event: ChangeEvent<HTMLInputElement>) => void;
-  onDatasetUpload: (event: ChangeEvent<HTMLInputElement>) => void;
   onDeleteDataset: (datasetId: number) => void;
   onSelectDataset: (datasetId: number) => void;
   onDeleteMemory: (memoryId: number) => void;
@@ -65,8 +62,6 @@ export function AppSidebar({
   memories,
   activeConversationId,
   conversationSearch,
-  memoryFileName,
-  datasetFileName,
   sidebarOpen,
   onToggleSidebar,
   onNewConversation,
@@ -74,8 +69,6 @@ export function AppSidebar({
   onConversationSearchChange,
   onRenameConversation,
   onDeleteConversation,
-  onMemoryUpload,
-  onDatasetUpload,
   onDeleteDataset,
   onSelectDataset,
   onDeleteMemory,
@@ -280,121 +273,97 @@ export function AppSidebar({
 
       <section className="mt-4 space-y-3 border-t border-[rgb(var(--border)/0.05)] pt-4">
         <div className="flex items-center gap-2 px-1 text-sm font-semibold">
-          <FileText className="h-4 w-4" />
-          Memory upload
+          <span>Memory</span>
         </div>
-        <label className="flex cursor-pointer items-center justify-center rounded-full border border-dashed border-[rgb(var(--border)/0.08)] bg-[rgb(var(--panel-soft)/0.34)] px-4 py-3 text-sm text-[rgb(var(--muted))] transition hover:bg-[rgb(var(--panel-soft)/0.62)]">
-          <input type="file" accept=".txt" className="hidden" onChange={onMemoryUpload} />
-          Upload .txt memory file
-        </label>
-        <p className="text-xs leading-5 text-[rgb(var(--muted))]">Saved locally and injected into prompts when relevant.</p>
-        {memoryFileName && (
-          <p className="rounded-full px-3 py-2 text-xs text-[rgb(var(--text))]" style={{ backgroundColor: "rgb(var(--accent) / 0.12)" }}>
-            Ready to store: {memoryFileName}
-          </p>
-        )}
-        {memories.length > 0 && (
-          <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
-              Local memory
-            </p>
-            <div className="max-h-[180px] space-y-2 overflow-auto pr-1 scrollbar-hide">
-              {memories.map((memory) => (
-                <div
-                  key={memory.id}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => onSelectMemory(memory.id)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      onSelectMemory(memory.id);
-                    }
-                  }}
-                  className="rounded-[1rem] bg-[rgb(var(--panel-soft)/0.42)] px-3 py-2 transition hover:bg-[rgb(var(--panel-soft)/0.66)]"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-medium">{memory.name}</p>
-                      <p className="mt-1 text-xs text-[rgb(var(--muted))]">
-                        {memory.chunk_count} chunk{memory.chunk_count === 1 ? "" : "s"}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => onDeleteMemory(memory.id)}
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[rgb(var(--panel-soft)/0.86)] text-[rgb(var(--muted))] transition hover:text-[rgb(var(--text))]"
-                      aria-label={`Delete memory ${memory.name}`}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
+        {memories.length === 0 ? (
+          <div className="rounded-[1rem] bg-[rgb(var(--panel-soft)/0.32)] px-3 py-3 text-sm text-[rgb(var(--muted))]">
+            No memory sources yet. Use the top-bar upload menu to add one.
+          </div>
+        ) : (
+          <div className="max-h-[220px] space-y-2 overflow-auto pr-1 scrollbar-hide">
+            {memories.map((memory) => (
+              <div
+                key={memory.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => onSelectMemory(memory.id)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    onSelectMemory(memory.id);
+                  }
+                }}
+                className="rounded-[1rem] bg-[rgb(var(--panel-soft)/0.42)] px-3 py-2 transition hover:bg-[rgb(var(--panel-soft)/0.66)]"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-medium">{memory.name}</p>
+                    <p className="mt-1 text-xs text-[rgb(var(--muted))]">
+                      {memory.chunk_count} chunk{memory.chunk_count === 1 ? "" : "s"}
+                    </p>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => onDeleteMemory(memory.id)}
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[rgb(var(--panel-soft)/0.86)] text-[rgb(var(--muted))] transition hover:text-[rgb(var(--text))]"
+                    aria-label={`Delete memory ${memory.name}`}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         )}
       </section>
 
       <section className="mt-4 space-y-3 border-t border-[rgb(var(--border)/0.05)] pt-4">
         <div className="flex items-center gap-2 px-1 text-sm font-semibold">
-          <LibraryBig className="h-4 w-4" />
-          Dataset import
+          <span>Datasets</span>
         </div>
-        <label className="flex cursor-pointer items-center justify-center rounded-full border border-dashed border-[rgb(var(--border)/0.08)] bg-[rgb(var(--panel-soft)/0.34)] px-4 py-3 text-sm text-[rgb(var(--muted))] transition hover:bg-[rgb(var(--panel-soft)/0.62)]">
-          <input type="file" accept=".txt,.csv,.json,.jsonl" className="hidden" onChange={onDatasetUpload} />
-          Upload dataset file
-        </label>
-        <p className="text-xs leading-5 text-[rgb(var(--muted))]">Stored locally and tracked separately from chat memory.</p>
-        {datasetFileName && (
-          <p className="rounded-full px-3 py-2 text-xs text-[rgb(var(--text))]" style={{ backgroundColor: "rgb(var(--accent) / 0.12)" }}>
-            Last imported: {datasetFileName}
-          </p>
-        )}
-        {datasets.length > 0 && (
-          <div className="space-y-2">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
-              Local datasets
-            </p>
-            <div className="max-h-[180px] space-y-2 overflow-auto pr-1 scrollbar-hide">
-              {datasets.map((dataset) => (
-                <div
-                  key={dataset.id}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => onSelectDataset(dataset.id)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      onSelectDataset(dataset.id);
-                    }
-                  }}
-                  className="rounded-[1rem] bg-[rgb(var(--panel-soft)/0.42)] px-3 py-2 text-left transition hover:bg-[rgb(var(--panel-soft)/0.66)]"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-medium">{dataset.name}</p>
-                      <p className="mt-1 text-xs text-[rgb(var(--muted))]">
-                        {dataset.source_count} source{dataset.source_count === 1 ? "" : "s"} ·{" "}
-                        {dataset.version_count} version{dataset.version_count === 1 ? "" : "s"} ·{" "}
-                        {dataset.chunk_count} chunk{dataset.chunk_count === 1 ? "" : "s"}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        onDeleteDataset(dataset.id);
-                      }}
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[rgb(var(--panel-soft)/0.86)] text-[rgb(var(--muted))] transition hover:text-[rgb(var(--text))]"
-                      aria-label={`Delete dataset ${dataset.name}`}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
+        {datasets.length === 0 ? (
+          <div className="rounded-[1rem] bg-[rgb(var(--panel-soft)/0.32)] px-3 py-3 text-sm text-[rgb(var(--muted))]">
+            No datasets imported yet. Use the top-bar import menu to add one.
+          </div>
+        ) : (
+          <div className="max-h-[220px] space-y-2 overflow-auto pr-1 scrollbar-hide">
+            {datasets.map((dataset) => (
+              <div
+                key={dataset.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => onSelectDataset(dataset.id)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    onSelectDataset(dataset.id);
+                  }
+                }}
+                className="rounded-[1rem] bg-[rgb(var(--panel-soft)/0.42)] px-3 py-2 text-left transition hover:bg-[rgb(var(--panel-soft)/0.66)]"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-medium">{dataset.name}</p>
+                    <p className="mt-1 text-xs text-[rgb(var(--muted))]">
+                      {dataset.source_count} source{dataset.source_count === 1 ? "" : "s"} ·{" "}
+                      {dataset.version_count} version{dataset.version_count === 1 ? "" : "s"} ·{" "}
+                      {dataset.chunk_count} chunk{dataset.chunk_count === 1 ? "" : "s"}
+                    </p>
                   </div>
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onDeleteDataset(dataset.id);
+                    }}
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[rgb(var(--panel-soft)/0.86)] text-[rgb(var(--muted))] transition hover:text-[rgb(var(--text))]"
+                    aria-label={`Delete dataset ${dataset.name}`}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         )}
       </section>

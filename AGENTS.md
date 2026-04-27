@@ -295,6 +295,7 @@ Repo status:
 - Imported datasets can now be renamed and re-described from the details panel.
 - The active Ollama model can now be viewed and changed from the sidebar settings card.
 - The sidebar model picker can now refresh from the installed Ollama model list.
+- Memory upload and dataset import now live in a compact header widget instead of the sidebar.
 - The UI theme can now be loaded from and saved to local settings.
 - The app should still boot its UI even if the Ollama model inventory endpoint is temporarily unavailable.
 - Chat conversations can now be renamed and deleted from the sidebar.
@@ -308,6 +309,7 @@ Repo status:
 - New conversations now start cleanly without the canned greeting message.
 - Chat autoscroll now only jumps to the bottom when sending a message, then leaves reading control to the user.
 - The welcome landing state should remain the default main-panel entry point until the user explicitly opens a conversation from the sidebar.
+- A first preview packaging flow now exists that stages the standalone frontend and backend into `dist/preview` for local testing.
 
 ## Open Product Notes
 
@@ -315,7 +317,7 @@ These are active product-direction reminders for the next UI and behavior pass:
 
 - Do not show the starter greeting message every time the user starts a new conversation. New conversations should begin cleanly unless the backend has real chat history to show.
 - Replace the always-on `IntelliText ready on local backend` header text with a stronger readiness flow. The app should show a loading state while backend/model readiness is being checked, and it should surface a friendly retry/error UI if the check fails.
-- Move memory upload and dataset import out of the sidebar and into a lighter profile-style popup or header widget area near the model/theme controls. Keep the entry points minimal, with optional info affordances.
+- Keep the header library widget minimal and easy to discover now that memory upload and dataset import live beside the model/theme controls.
 - Change chat scrolling behavior so the conversation only auto-jumps to the bottom when the user sends a message. After that, the user should control reading progress with the existing jump-to-bottom button instead of the app forcing the view to stay pinned to the latest token.
 
 Immediate next step:
