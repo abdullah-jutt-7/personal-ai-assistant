@@ -48,6 +48,7 @@ Copy-Item -Path (Join-Path $repoRoot "scripts\launch-app.ps1") -Destination (Joi
 Copy-Item -Path (Join-Path $repoRoot "scripts\stop-app.ps1") -Destination (Join-Path $distRoot "stop-app.ps1") -Force
 Copy-Item -Path (Join-Path $repoRoot "scripts\run-preview.ps1") -Destination (Join-Path $distRoot "run-preview.ps1") -Force
 Copy-Item -Path (Join-Path $repoRoot "scripts\stop-preview.ps1") -Destination (Join-Path $distRoot "stop-preview.ps1") -Force
+Copy-Item -Path (Join-Path $repoRoot "scripts\bootstrap-ollama.ps1") -Destination (Join-Path $distRoot "bootstrap-ollama.ps1") -Force
 
 $distVenv = Join-Path $distRoot ".venv"
 & $repoPython -m venv $distVenv

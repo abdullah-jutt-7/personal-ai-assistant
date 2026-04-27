@@ -298,6 +298,7 @@ Repo status:
 - Memory upload and dataset import now live in a compact header widget instead of the sidebar.
 - The UI theme can now be loaded from and saved to local settings.
 - The app should still boot its UI even if the Ollama model inventory endpoint is temporarily unavailable.
+- The public installer should stay small and provision Ollama plus the default model on first launch instead of embedding model weights inside `setup.exe`.
 - Chat conversations can now be renamed and deleted from the sidebar.
 - The sidebar can now filter conversations by title.
 - Keep iterating toward a cleaner, less cluttered visual language that feels closer to the minimal AI-app examples.
@@ -311,6 +312,7 @@ Repo status:
 - The welcome landing state should remain the default main-panel entry point until the user explicitly opens a conversation from the sidebar.
 - A first preview packaging flow now exists that stages the standalone frontend and backend into `dist/preview` for local testing.
 - The preview bundle now also creates a local Python virtual environment and copies `node.exe` so the staged app can run from bundled runtimes instead of the developer machine's global installs.
+- The public installer path now provisions Ollama from the official Windows installer on first launch and pulls `qwen3:4b` automatically if it is missing.
 - Installer scaffolding now exists with shared launch/stop scripts, a `run-app.cmd` entry point, and a generated Inno Setup script under `dist/installer`.
 
 ## Open Product Notes

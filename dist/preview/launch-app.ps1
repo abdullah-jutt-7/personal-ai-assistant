@@ -26,6 +26,14 @@ if (-not (Test-Path (Join-Path $RootPath "frontend"))) {
   throw "Missing frontend at $RootPath. Run the package step first."
 }
 
+$bootstrapScript = Join-Path $RootPath "bootstrap-ollama.ps1"
+$skipOllamaBootstrap = $env:INTELLITEXT_SKIP_OLLAMA_BOOTSTRAP -eq "1"
+
+if (-not $skipOllamaBootstrap -and (Test-Path $bootstrapScript)) {
+  Write-Host "Checking Ollama runtime and model availability..."
+  & powershell.exe -ExecutionPolicy Bypass -File $bootstrapScript -ModelName "qwen3:4b" | Out-Null
+}
+
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $pythonCandidates = @(
   (Join-Path $RootPath ".venv\Scripts\python.exe"),

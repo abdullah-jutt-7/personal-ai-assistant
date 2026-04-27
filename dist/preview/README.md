@@ -55,6 +55,8 @@ If Inno Setup is installed, the script can compile the installer. If not, it wil
 
 The installer template consumes the preview bundle directly, so the packaged output includes the local runtime pieces staged above.
 
+For the public installer path, the first launch will provision Ollama from the official Windows installer if needed and then pull `qwen3:4b` automatically before the app starts.
+
 ## Notes
 
 - The app is local-first.
