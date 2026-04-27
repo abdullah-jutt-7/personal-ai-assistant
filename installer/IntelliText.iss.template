@@ -1,0 +1,35 @@
+#define MyAppName "IntelliText"
+#define MyAppVersion "0.1.0"
+#define SourceDir "__SOURCE_DIR__"
+#define OutputDir "__OUTPUT_DIR__"
+
+[Setup]
+AppId={{4A7B2F4E-1C43-4A6B-9F93-8E5A1D7E5D4B}}
+AppName={#MyAppName}
+AppVersion={#MyAppVersion}
+DefaultDirName={autopf}\IntelliText
+DefaultGroupName=IntelliText
+OutputDir={#OutputDir}
+OutputBaseFilename=IntelliText-Setup
+Compression=lzma2
+SolidCompression=yes
+WizardStyle=modern
+PrivilegesRequired=lowest
+DisableProgramGroupPage=no
+
+[Tasks]
+Name: "desktopicon"; Description: "Create a &desktop icon"; GroupDescription: "Additional icons:"
+
+[Dirs]
+Name: "{app}\logs"
+Name: "{app}\data"
+
+[Files]
+Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs ignoreversion
+
+[Icons]
+Name: "{autoprograms}\IntelliText"; Filename: "{app}\run-app.cmd"
+Name: "{autodesktop}\IntelliText"; Filename: "{app}\run-app.cmd"; Tasks: desktopicon
+
+[Run]
+Filename: "{app}\run-app.cmd"; Description: "Launch IntelliText"; Flags: nowait postinstall skipifsilent

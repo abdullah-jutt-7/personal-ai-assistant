@@ -41,6 +41,20 @@ npm run preview
 
 This stops any previous preview processes, stages the standalone Next.js frontend plus the Python backend into `dist/preview`, and launches both locally.
 
+The preview bundle now also creates a local Python virtual environment and copies `node.exe` into the staged folder so the packaged app can run from the bundle instead of depending on the build machine's runtimes.
+
+## Installer Scaffold
+
+The final Windows installer work has started. The current scaffold generates an Inno Setup script from the packaged preview bundle.
+
+```powershell
+npm run build:installer
+```
+
+If Inno Setup is installed, the script can compile the installer. If not, it will still generate the ready-to-build `.iss` file in `dist/installer`.
+
+The installer template consumes the preview bundle directly, so the packaged output includes the local runtime pieces staged above.
+
 ## Notes
 
 - The app is local-first.

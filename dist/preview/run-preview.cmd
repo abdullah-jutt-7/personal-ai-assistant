@@ -1,4 +1,4 @@
 @echo off
 setlocal
 set SCRIPT_DIR=%~dp0
-powershell.exe -ExecutionPolicy Bypass -File "%SCRIPT_DIR%run-preview.ps1"
+call "%SCRIPT_DIR%run-app.cmd"

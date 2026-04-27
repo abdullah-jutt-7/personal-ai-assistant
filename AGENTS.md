@@ -226,7 +226,7 @@ We will implement the project in stages.
 - [x] Add dataset details inspection flow.
 
 ### Stage 3 - Installer
-- [ ] Bundle app runtime.
+- [x] Bundle app runtime.
 - [ ] Bundle or provision Ollama.
 - [ ] Package model files.
 - [ ] Create Windows installer.
@@ -310,6 +310,8 @@ Repo status:
 - Chat autoscroll now only jumps to the bottom when sending a message, then leaves reading control to the user.
 - The welcome landing state should remain the default main-panel entry point until the user explicitly opens a conversation from the sidebar.
 - A first preview packaging flow now exists that stages the standalone frontend and backend into `dist/preview` for local testing.
+- The preview bundle now also creates a local Python virtual environment and copies `node.exe` so the staged app can run from bundled runtimes instead of the developer machine's global installs.
+- Installer scaffolding now exists with shared launch/stop scripts, a `run-app.cmd` entry point, and a generated Inno Setup script under `dist/installer`.
 
 ## Open Product Notes
 
