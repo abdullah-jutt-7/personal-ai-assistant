@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
-import { ArrowDown } from "lucide-react";
+import { ArrowDown, Bot } from "lucide-react";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { ChatHeader } from "@/components/chat-header";
@@ -27,6 +27,12 @@ import type {
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8000";
 const themeStorageKey = "personalaiasisstant-theme";
+
+const welcomePrompts = [
+  "What can IntelliText help me with today?",
+  "Help me draft a plan for my next project.",
+  "Summarize how local memory and datasets work here.",
+];
 
 type StreamPayload = {
   conversation_id?: number;
@@ -132,7 +138,7 @@ export default function Page() {
 
   useEffect(() => {
     void bootstrap();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!isAssistantStreaming || reasoningStartedAtRef.current === null) return;
@@ -283,13 +289,8 @@ export default function Page() {
       setDatasetDraftDescription("");
       setDatasetEditStatus("");
 
-      if (convData.length > 0) {
-        const first = convData[0];
-        setActiveConversationId(first.id);
-        await loadConversation(first.id);
-      } else {
-        setMessages([]);
-      }
+      setActiveConversationId(null);
+      setMessages([]);
       setBootstrapState("ready");
     } catch {
       setBootstrapState("error");
@@ -316,11 +317,7 @@ export default function Page() {
   }
 
   async function startNewConversation() {
-    const res = await fetch(`${apiBaseUrl}/api/conversations`, { method: "POST" });
-    if (!res.ok) return;
-    const data = (await res.json()) as ConversationSummary;
-    setConversations((current) => [data, ...current]);
-    setActiveConversationId(data.id);
+    setActiveConversationId(null);
     setMessages([]);
     setReasoningDrawerOpen(false);
     setSelectedReasoningText("");
@@ -926,28 +923,51 @@ export default function Page() {
                 ref={chatScrollRef}
                 className="scrollbar-hide min-h-0 h-full overflow-y-auto overflow-x-hidden px-[clamp(18px,1.5vw,30px)] py-[clamp(18px,1.6vw,30px)]"
               >
-                <MessageList
-                  messages={messages}
-                  theme={theme}
-                  onOpenReasoning={openReasoningDrawer}
-                  streamingReasoningText={liveReasoningText}
-                  streamingReasoningSeconds={liveReasoningSeconds}
-                  isStreamingAssistant={isAssistantStreaming}
-                />
-                {messages.length === 0 && bootstrapState === "ready" && (
-                  <div className="flex min-h-[40vh] items-center justify-center px-6 py-10">
-                    <div className="max-w-lg text-center">
-                      <p className="text-sm uppercase tracking-[0.28em] text-[rgb(var(--muted))]">
-                        Ready for a new conversation
+                {messages.length === 0 && bootstrapState === "ready" ? (
+                  <div className="flex min-h-full items-center justify-center py-10">
+                    <div className="w-full max-w-3xl text-center">
+                      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[rgb(var(--panel-soft)/0.75)] text-[rgb(var(--accent))] shadow-[0_10px_20px_rgba(0,0,0,0.08)]">
+                        <Bot className="h-5 w-5" />
+                      </div>
+                      <p className="mt-6 text-sm uppercase tracking-[0.28em] text-[rgb(var(--muted))]">
+                        Welcome to IntelliText
                       </p>
-                      <h3 className="mt-3 text-2xl font-semibold tracking-[-0.02em]">
-                        Ask IntelliText anything to begin.
+                      <h3 className="mt-3 text-[clamp(2rem,2.8vw,3.35rem)] font-semibold tracking-[-0.04em]">
+                        What would you like to know?
                       </h3>
-                      <p className="mt-3 text-sm leading-6 text-[rgb(var(--muted))]">
-                        Your conversation will appear here after you send the first message.
+                      <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-[rgb(var(--muted))]">
+                        Start a new conversation with a prompt, or pick one of the suggestions below.
+                        A new chat will be created automatically when you send your first message.
                       </p>
+
+                      <div className="mt-8 grid gap-3 md:grid-cols-3">
+                        {welcomePrompts.map((prompt) => (
+                          <button
+                            key={prompt}
+                            type="button"
+                            onClick={() => void sendMessage(prompt)}
+                            className="group min-h-[130px] rounded-[1.25rem] border border-[rgb(var(--border)/0.06)] bg-[rgb(var(--panel)/0.82)] p-4 text-left shadow-[0_10px_24px_rgba(0,0,0,0.05)] transition hover:-translate-y-0.5 hover:bg-[rgb(var(--panel)/0.96)]"
+                          >
+                            <p className="text-xs uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
+                              Suggested prompt
+                            </p>
+                            <p className="mt-3 text-sm leading-6 text-[rgb(var(--text))]">
+                              {prompt}
+                            </p>
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
+                ) : (
+                  <MessageList
+                    messages={messages}
+                    theme={theme}
+                    onOpenReasoning={openReasoningDrawer}
+                    streamingReasoningText={liveReasoningText}
+                    streamingReasoningSeconds={liveReasoningSeconds}
+                    isStreamingAssistant={isAssistantStreaming}
+                  />
                 )}
               </div>
 

@@ -283,6 +283,7 @@ Repo status:
 - Chat scrolling is now constrained to the conversation pane, and Enter-to-send is supported.
 - Assistant responses now render richer markdown and styled code blocks.
 - The conversation pane now auto-scrolls to the latest message during normal chat flow.
+- The app now opens to a welcome landing state instead of auto-loading the most recent conversation, and the first sent prompt automatically creates a new conversation.
 - Uploaded memory now influences future prompts through a bounded local-memory system prompt section.
 - Uploaded memory sources can now be listed and deleted from the sidebar.
 - Uploaded memory sources can now be inspected through a details panel showing file metadata and chunk previews.
@@ -306,6 +307,7 @@ Repo status:
 - Startup now uses a loading/error overlay with retry instead of a static ready message.
 - New conversations now start cleanly without the canned greeting message.
 - Chat autoscroll now only jumps to the bottom when sending a message, then leaves reading control to the user.
+- The welcome landing state should remain the default main-panel entry point until the user explicitly opens a conversation from the sidebar.
 
 ## Open Product Notes
 
