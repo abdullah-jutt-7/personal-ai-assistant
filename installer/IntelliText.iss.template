@@ -28,8 +28,8 @@ Name: "{app}\data"
 Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs ignoreversion
 
 [Icons]
-Name: "{autoprograms}\IntelliText"; Filename: "{app}\run-app.cmd"
-Name: "{autodesktop}\IntelliText"; Filename: "{app}\run-app.cmd"; Tasks: desktopicon
+Name: "{autoprograms}\IntelliText"; Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-ExecutionPolicy Bypass -WindowStyle Hidden -File ""{app}\launch-app.ps1"" -Mode preview"
+Name: "{autodesktop}\IntelliText"; Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-ExecutionPolicy Bypass -WindowStyle Hidden -File ""{app}\launch-app.ps1"" -Mode preview"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\run-app.cmd"; Description: "Launch IntelliText"; Flags: nowait postinstall skipifsilent
+Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-ExecutionPolicy Bypass -WindowStyle Hidden -File ""{app}\launch-app.ps1"" -Mode preview"; Description: "Launch IntelliText"; Flags: nowait postinstall skipifsilent

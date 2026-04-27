@@ -26,12 +26,41 @@ if (-not (Test-Path (Join-Path $RootPath "frontend"))) {
   throw "Missing frontend at $RootPath. Run the package step first."
 }
 
+$stopScript = Join-Path $PSScriptRoot "stop-app.ps1"
+if (Test-Path $stopScript) {
+  try {
+    & powershell.exe -ExecutionPolicy Bypass -File $stopScript -Mode all -RootPath $RootPath | Out-Null
+  } catch {
+    Write-Host "Previous IntelliText instance cleanup was skipped: $($_.Exception.Message)"
+  }
+}
+
 $bootstrapScript = Join-Path $RootPath "bootstrap-ollama.ps1"
 $skipOllamaBootstrap = $env:INTELLITEXT_SKIP_OLLAMA_BOOTSTRAP -eq "1"
 
 if (-not $skipOllamaBootstrap -and (Test-Path $bootstrapScript)) {
-  Write-Host "Checking Ollama runtime and model availability..."
-  & powershell.exe -ExecutionPolicy Bypass -File $bootstrapScript -ModelName "qwen3:4b" | Out-Null
+  $bootstrapLogDir = Join-Path $RootPath "logs"
+  New-Item -ItemType Directory -Path $bootstrapLogDir -Force | Out-Null
+
+  $bootstrapStdoutLog = Join-Path $bootstrapLogDir "bootstrap.out.log"
+  $bootstrapStderrLog = Join-Path $bootstrapLogDir "bootstrap.err.log"
+
+  Write-Host "Checking Ollama runtime and model availability in the background..."
+  Start-Process `
+    -FilePath "powershell.exe" `
+    -ArgumentList @(
+      "-ExecutionPolicy",
+      "Bypass",
+      "-File",
+      $bootstrapScript,
+      "-ModelName",
+      "qwen3:4b"
+    ) `
+    -WorkingDirectory $RootPath `
+    -WindowStyle Hidden `
+    -PassThru `
+    -RedirectStandardOutput $bootstrapStdoutLog `
+    -RedirectStandardError $bootstrapStderrLog | Out-Null
 }
 
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
