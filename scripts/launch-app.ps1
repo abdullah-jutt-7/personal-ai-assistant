@@ -56,7 +56,7 @@ if (-not $skipOllamaBootstrap -and (Test-Path $bootstrapScript)) {
       $bootstrapScript,
       "-ModelNames",
       "deepseek-r1:1.5b",
-      "phi3.5",
+      "qwen3:1.7b",
       "-ModelsDir",
       $bundledModelsDir
     ) `

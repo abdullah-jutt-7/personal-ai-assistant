@@ -31,7 +31,7 @@ Chosen stack:
 - Local database: SQLite
 - Model runtime: Ollama
 - Default packaged model: deepseek-r1:1.5b
-- Secondary packaged model: phi3.5
+- Secondary packaged model: qwen3:1.7b
 - Windows shell: WebView2 host wrapping the local app runtime
 
 Why this stack:
@@ -44,7 +44,7 @@ Why this stack:
 - SQLite is the easiest reliable local database for a single-user offline Windows app.
 - Ollama handles local model inference, so we do not need to ship Python ML code.
 - `deepseek-r1:1.5b` is the default packaged model because it is small enough for older Windows laptops while still providing reasoning-style output that can drive the thinking view.
-- `phi3.5` is the secondary packaged model for an additional lightweight fallback option.
+- `qwen3:1.7b` is the secondary packaged model for an additional lightweight fallback option.
 
 ## Important Distribution Rule
 
@@ -53,7 +53,7 @@ Users must not need to install Docker, PostgreSQL, MySQL, Node, or any other ext
 How that works:
 - Python is the developer/runtime language for the app codebase, but the final Windows installer can bundle the Python runtime so end users do not need to install Python manually.
 - The final installer ships with the app runtime and UI packaged locally, wrapped in a WebView2 shell.
-- The installer should bundle Ollama plus a local model store when possible, and it should treat `deepseek-r1:1.5b` and `phi3.5` as the packaged model pair.
+- The installer should bundle Ollama plus a local model store when possible, and it should treat `deepseek-r1:1.5b` and `qwen3:1.7b` as the packaged model pair.
 - The app should launch from the installer or a desktop shortcut without extra setup and should run from the installed directory.
 
 Developer setup rule:
@@ -232,7 +232,7 @@ We will implement the project in stages.
 ### Stage 3 - Installer
 - [x] Bundle app runtime.
 - [ ] Bundle or provision Ollama.
-- [ ] Package model files for `deepseek-r1:1.5b` and `phi3.5`.
+- [x] Package model files for `deepseek-r1:1.5b` and `qwen3:1.7b`.
 - [ ] Create Windows installer.
 - [ ] Verify first-run experience.
 
@@ -317,7 +317,8 @@ Repo status:
 - The welcome landing state should remain the default main-panel entry point until the user explicitly opens a conversation from the sidebar.
 - A first preview packaging flow now exists that stages the standalone frontend and backend into `dist/preview` for local testing.
 - The preview bundle now also creates a local Python virtual environment and copies `node.exe` so the staged app can run from bundled runtimes instead of the developer machine's global installs.
-- The public installer path should now favor a WebView2-based shell plus bundled Ollama/runtime assets, and it should seed `deepseek-r1:1.5b` plus `phi3.5` from the installed directory when available.
+- The public installer path should now favor a WebView2-based shell plus bundled Ollama/runtime assets, and it should seed `deepseek-r1:1.5b` plus `qwen3:1.7b` from the installed directory when available.
+- The repo-local `models/` directory is now seeded with the packaged Ollama manifests and blobs for `deepseek-r1:1.5b` and `qwen3:1.7b`.
 - Installer scaffolding now exists with shared launch/stop scripts, a `run-app.cmd` entry point, and a generated Inno Setup script under `dist/installer`.
 
 ## Open Product Notes

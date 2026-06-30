@@ -56,7 +56,7 @@ If Inno Setup is installed, the script can compile the installer. If not, it wil
 
 The installer template consumes the preview bundle directly, so the packaged output includes the local runtime pieces staged above.
 
-For the public installer path, the first launch will try to use a bundled local Ollama/model store first. The packaged model pair is `deepseek-r1:1.5b` and `phi3.5`, with `deepseek-r1:1.5b` as the default active model.
+For the public installer path, the first launch will try to use a bundled local Ollama/model store first. The packaged model pair is `deepseek-r1:1.5b` and `qwen3:1.7b`, with `deepseek-r1:1.5b` as the default active model.
 
 ## Notes
 

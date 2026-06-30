@@ -1,6 +1,6 @@
 param(
   [Parameter(Mandatory = $false)]
-  [string[]]$ModelNames = @("deepseek-r1:1.5b", "phi3.5"),
+  [string[]]$ModelNames = @("deepseek-r1:1.5b", "qwen3:1.7b"),
 
   [Parameter(Mandatory = $false)]
   [string]$ModelsDir = "",

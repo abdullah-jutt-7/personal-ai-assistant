@@ -20,9 +20,16 @@ frontend/node_modules/
 data/
 backend/data/
 
+# Generated package outputs
+dist/preview/
+dist/installer/
+
+# Repo-local Ollama model store
+models/*
+!models/README.md
+
 # Editor / OS
 .DS_Store
 Thumbs.db
 .idea/
 .vscode/
-
