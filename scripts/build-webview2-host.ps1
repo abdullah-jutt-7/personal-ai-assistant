@@ -6,6 +6,7 @@ $cacheRoot = Join-Path $repoRoot ".cache\webview2"
 $packageIndexUrl = "https://api.nuget.org/v3-flatcontainer/microsoft.web.webview2/index.json"
 $packageBaseUrl = "https://www.nuget.org/api/v2/package/Microsoft.Web.WebView2"
 $sourcePath = Join-Path $repoRoot "webview-host\IntelliText.Host.cs"
+$bundledRuntimeRoot = Join-Path $buildRoot "webview2-runtime"
 
 if (-not (Test-Path $sourcePath)) {
   throw "Missing host source at $sourcePath."
@@ -95,5 +96,21 @@ $compileArgs += $sourcePath
 Copy-Item -Path $coreDll.FullName -Destination $buildRoot -Force
 Copy-Item -Path $winFormsDll.FullName -Destination $buildRoot -Force
 Copy-Item -Path $loaderDll -Destination $buildRoot -Force
+
+if (Test-Path $bundledRuntimeRoot) {
+  Remove-Item -LiteralPath $bundledRuntimeRoot -Recurse -Force
+}
+
+$installedRuntimeRoot = Get-ChildItem "C:\Program Files (x86)\Microsoft\EdgeWebView\Application" -Directory -ErrorAction SilentlyContinue |
+  Where-Object { $_.Name -match '^\d+\.\d+\.\d+\.\d+$' } |
+  Sort-Object { [version]$_.Name } |
+  Select-Object -Last 1
+
+if ($installedRuntimeRoot) {
+  Copy-Item -Path $installedRuntimeRoot.FullName -Destination $bundledRuntimeRoot -Recurse -Force
+  Write-Host "Bundled WebView2 runtime from $($installedRuntimeRoot.FullName)"
+} else {
+  Write-Host "No installed WebView2 runtime was found to bundle."
+}
 
 Write-Host "Built WebView2 host at $outputExe using Microsoft.Web.WebView2 $packageVersion"
