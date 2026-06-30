@@ -6,6 +6,7 @@ $frontendStatic = Join-Path $repoRoot "frontend\.next\static"
 $frontendPublic = Join-Path $repoRoot "frontend\public"
 $backendSource = Join-Path $repoRoot "backend"
 $repoModels = Join-Path $repoRoot "models"
+$repoOllama = Join-Path $repoRoot "ollama"
 $distRoot = Join-Path $repoRoot "dist\preview"
 $repoPython = Join-Path $repoRoot ".venv\Scripts\python.exe"
 
@@ -53,6 +54,10 @@ Copy-Item -Path (Join-Path $repoRoot "scripts\bootstrap-ollama.ps1") -Destinatio
 
 if (Test-Path $repoModels) {
   Copy-Item -Path $repoModels -Destination (Join-Path $distRoot "models") -Recurse -Force
+}
+
+if (Test-Path $repoOllama) {
+  Copy-Item -Path $repoOllama -Destination (Join-Path $distRoot "ollama") -Recurse -Force
 }
 
 $distVenv = Join-Path $distRoot ".venv"

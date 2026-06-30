@@ -54,6 +54,7 @@ How that works:
 - Python is the developer/runtime language for the app codebase, but the final Windows installer can bundle the Python runtime so end users do not need to install Python manually.
 - The final installer ships with the app runtime and UI packaged locally, wrapped in a WebView2 shell.
 - The installer should bundle Ollama plus a local model store when possible, and it should treat `deepseek-r1:1.5b` and `qwen3:1.7b` as the packaged model pair.
+- The installed app should always prefer its own `ollama\ollama.exe` and `models\` folders over any system-wide Ollama installation or global model cache.
 - The app should launch from the installer or a desktop shortcut without extra setup and should run from the installed directory.
 
 Developer setup rule:
@@ -64,6 +65,7 @@ Developer setup rule:
 - If we add helper scripts, they must reduce setup, not increase it.
 - Supported development Python versions are 3.12 or 3.13. Do not use Python 3.14 for now because some native packages in the stack may not have wheels for it yet.
 - When packaging, prefer local runtime assets over network downloads. A fresh install may provision missing pieces only as a fallback, but the preferred path is to ship them in the installer payload.
+- When the installed app starts, it should bootstrap the bundled Ollama process from the install directory, then point that process at the bundled local model store.
 
 ## Core Architecture
 

@@ -38,6 +38,7 @@ if (Test-Path $stopScript) {
 $bootstrapScript = Join-Path $RootPath "bootstrap-ollama.ps1"
 $skipOllamaBootstrap = $env:INTELLITEXT_SKIP_OLLAMA_BOOTSTRAP -eq "1"
 $bundledModelsDir = Join-Path $RootPath "models"
+$bundledOllamaExe = Join-Path $RootPath "ollama\ollama.exe"
 
 if (-not $skipOllamaBootstrap -and (Test-Path $bootstrapScript)) {
   $bootstrapLogDir = Join-Path $RootPath "logs"
@@ -58,7 +59,9 @@ if (-not $skipOllamaBootstrap -and (Test-Path $bootstrapScript)) {
       "deepseek-r1:1.5b",
       "qwen3:1.7b",
       "-ModelsDir",
-      $bundledModelsDir
+      $bundledModelsDir,
+      "-OllamaExePath",
+      $bundledOllamaExe
     ) `
     -WorkingDirectory $RootPath `
     -WindowStyle Hidden `

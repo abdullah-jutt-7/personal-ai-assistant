@@ -6,6 +6,9 @@ param(
   [string]$ModelsDir = "",
 
   [Parameter(Mandatory = $false)]
+  [string]$OllamaExePath = "",
+
+  [Parameter(Mandatory = $false)]
   [int]$ReadyTimeoutSeconds = 180
 )
 
@@ -53,7 +56,14 @@ function Wait-OllamaApiReady {
   return $false
 }
 
-$ollamaExe = Get-OllamaCommand
+$bundledOllamaExe = $OllamaExePath.Trim()
+if ($bundledOllamaExe -and (Test-Path $bundledOllamaExe)) {
+  $ollamaExe = $bundledOllamaExe
+  Write-Host "Using bundled Ollama runtime at $bundledOllamaExe."
+} else {
+  $ollamaExe = Get-OllamaCommand
+}
+
 if (-not $ollamaExe) {
   Write-Host "Installing Ollama from the official Windows installer..."
   & powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "irm https://ollama.com/install.ps1 | iex"
