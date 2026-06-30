@@ -24,6 +24,10 @@ backend/data/
 models/*
 !models/README.md
 
+# Repo-local Ollama runtime
+ollama/*
+!ollama/README.md
+
 # Generated preview artifacts
 dist/preview/logs/
 dist/preview/models/

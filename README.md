@@ -43,6 +43,7 @@ This stops any previous preview processes, stages the standalone Next.js fronten
 
 The preview bundle now also creates a local Python virtual environment and copies `node.exe` into the staged folder so the packaged app can run from the bundle instead of depending on the build machine's runtimes.
 If a local `models` folder exists at the repo root, the preview bundle will copy it into `dist/preview/models` and the Ollama bootstrap script will prefer that local model store.
+If a local `ollama` folder exists at the repo root, the preview bundle will copy it into `dist/preview/ollama` and the app will prefer that bundled Ollama runtime.
 
 ## Installer Scaffold
 
@@ -57,6 +58,7 @@ If Inno Setup is installed, the script can compile the installer. If not, it wil
 The installer template consumes the preview bundle directly, so the packaged output includes the local runtime pieces staged above.
 
 For the public installer path, the first launch will try to use a bundled local Ollama/model store first. The packaged model pair is `deepseek-r1:1.5b` and `qwen3:1.7b`, with `deepseek-r1:1.5b` as the default active model.
+When the bundled Ollama runtime is present, the app uses its own local Ollama port instead of the system-wide default.
 
 ## Notes
 

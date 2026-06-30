@@ -39,6 +39,9 @@ $bootstrapScript = Join-Path $RootPath "bootstrap-ollama.ps1"
 $skipOllamaBootstrap = $env:INTELLITEXT_SKIP_OLLAMA_BOOTSTRAP -eq "1"
 $bundledModelsDir = Join-Path $RootPath "models"
 $bundledOllamaExe = Join-Path $RootPath "ollama\ollama.exe"
+$bundledOllamaBaseUrl = "http://127.0.0.1:11435"
+$previousOllamaBaseUrl = $env:OLLAMA_BASE_URL
+$env:OLLAMA_BASE_URL = $bundledOllamaBaseUrl
 
 if (-not $skipOllamaBootstrap -and (Test-Path $bootstrapScript)) {
   $bootstrapLogDir = Join-Path $RootPath "logs"
@@ -61,7 +64,9 @@ if (-not $skipOllamaBootstrap -and (Test-Path $bootstrapScript)) {
       "-ModelsDir",
       $bundledModelsDir,
       "-OllamaExePath",
-      $bundledOllamaExe
+      $bundledOllamaExe,
+      "-OllamaBaseUrl",
+      $bundledOllamaBaseUrl
     ) `
     -WorkingDirectory $RootPath `
     -WindowStyle Hidden `
@@ -105,31 +110,39 @@ $backendStderrLog = Join-Path $logDir "backend.err.log"
 $frontendStdoutLog = Join-Path $logDir "frontend.out.log"
 $frontendStderrLog = Join-Path $logDir "frontend.err.log"
 
-$backendProcess = Start-Process `
-  -FilePath $pythonExe `
-  -ArgumentList @(
-    "-m",
-    "uvicorn",
-    "backend.app.main:app",
-    "--host",
-    "127.0.0.1",
-    "--port",
-    "8000"
-  ) `
-  -WorkingDirectory $RootPath `
-  -WindowStyle Hidden `
-  -PassThru `
-  -RedirectStandardOutput $backendStdoutLog `
-  -RedirectStandardError $backendStderrLog
+try {
+  $backendProcess = Start-Process `
+    -FilePath $pythonExe `
+    -ArgumentList @(
+      "-m",
+      "uvicorn",
+      "backend.app.main:app",
+      "--host",
+      "127.0.0.1",
+      "--port",
+      "8000"
+    ) `
+    -WorkingDirectory $RootPath `
+    -WindowStyle Hidden `
+    -PassThru `
+    -RedirectStandardOutput $backendStdoutLog `
+    -RedirectStandardError $backendStderrLog
 
-$frontendProcess = Start-Process `
-  -FilePath $nodeExe `
-  -ArgumentList "frontend/server.js" `
-  -WorkingDirectory $RootPath `
-  -WindowStyle Hidden `
-  -PassThru `
-  -RedirectStandardOutput $frontendStdoutLog `
-  -RedirectStandardError $frontendStderrLog
+  $frontendProcess = Start-Process `
+    -FilePath $nodeExe `
+    -ArgumentList "frontend/server.js" `
+    -WorkingDirectory $RootPath `
+    -WindowStyle Hidden `
+    -PassThru `
+    -RedirectStandardOutput $frontendStdoutLog `
+    -RedirectStandardError $frontendStderrLog
+} finally {
+  if ($null -ne $previousOllamaBaseUrl) {
+    $env:OLLAMA_BASE_URL = $previousOllamaBaseUrl
+  } else {
+    Remove-Item Env:\OLLAMA_BASE_URL -ErrorAction SilentlyContinue
+  }
+}
 
 @{
   backend_pid = $backendProcess.Id
@@ -144,4 +157,5 @@ Write-Host "Backend PID: $($backendProcess.Id)"
 Write-Host "Frontend PID: $($frontendProcess.Id)"
 Write-Host "Frontend: http://127.0.0.1:3000"
 Write-Host "Backend: http://127.0.0.1:8000"
+Write-Host "Ollama: $bundledOllamaBaseUrl"
 Write-Host "Logs: $logDir"
