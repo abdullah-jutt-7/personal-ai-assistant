@@ -5,6 +5,7 @@ $frontendStandalone = Join-Path $repoRoot "frontend\.next\standalone"
 $frontendStatic = Join-Path $repoRoot "frontend\.next\static"
 $frontendPublic = Join-Path $repoRoot "frontend\public"
 $backendSource = Join-Path $repoRoot "backend"
+$repoModels = Join-Path $repoRoot "models"
 $distRoot = Join-Path $repoRoot "dist\preview"
 $repoPython = Join-Path $repoRoot ".venv\Scripts\python.exe"
 
@@ -49,6 +50,10 @@ Copy-Item -Path (Join-Path $repoRoot "scripts\stop-app.ps1") -Destination (Join-
 Copy-Item -Path (Join-Path $repoRoot "scripts\run-preview.ps1") -Destination (Join-Path $distRoot "run-preview.ps1") -Force
 Copy-Item -Path (Join-Path $repoRoot "scripts\stop-preview.ps1") -Destination (Join-Path $distRoot "stop-preview.ps1") -Force
 Copy-Item -Path (Join-Path $repoRoot "scripts\bootstrap-ollama.ps1") -Destination (Join-Path $distRoot "bootstrap-ollama.ps1") -Force
+
+if (Test-Path $repoModels) {
+  Copy-Item -Path $repoModels -Destination (Join-Path $distRoot "models") -Recurse -Force
+}
 
 $distVenv = Join-Path $distRoot ".venv"
 & $repoPython -m venv $distVenv

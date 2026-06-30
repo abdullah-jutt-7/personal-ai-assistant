@@ -1,6 +1,9 @@
 param(
   [Parameter(Mandatory = $false)]
-  [string]$ModelName = "qwen3:4b",
+  [string[]]$ModelNames = @("deepseek-r1:1.5b", "phi3.5"),
+
+  [Parameter(Mandatory = $false)]
+  [string]$ModelsDir = "",
 
   [Parameter(Mandatory = $false)]
   [int]$ReadyTimeoutSeconds = 180
@@ -61,6 +64,12 @@ if (-not $ollamaExe) {
   throw "Ollama could not be found after installation."
 }
 
+$resolvedModelsDir = $ModelsDir.Trim()
+if ($resolvedModelsDir -and (Test-Path $resolvedModelsDir)) {
+  $env:OLLAMA_MODELS = $resolvedModelsDir
+  Write-Host "Using bundled Ollama models directory at $resolvedModelsDir."
+}
+
 if (-not (Test-OllamaApiReady)) {
   try {
     Start-Process -FilePath $ollamaExe -ArgumentList "serve" -WindowStyle Hidden | Out-Null
@@ -79,7 +88,16 @@ if ($tagsResponse.models) {
   $existingModels = @($tagsResponse.models | ForEach-Object { $_.name })
 }
 
-if ($existingModels -notcontains $ModelName) {
-  Write-Host "Downloading Ollama model $ModelName..."
-  & $ollamaExe pull $ModelName
+foreach ($modelName in $ModelNames) {
+  $normalizedModelName = $modelName.Trim()
+  if (-not $normalizedModelName) {
+    continue
+  }
+
+  if ($existingModels -contains $normalizedModelName) {
+    continue
+  }
+
+  Write-Host "Downloading Ollama model $normalizedModelName..."
+  & $ollamaExe pull $normalizedModelName
 }

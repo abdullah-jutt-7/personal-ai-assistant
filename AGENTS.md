@@ -30,7 +30,9 @@ Chosen stack:
 - Migrations: Alembic
 - Local database: SQLite
 - Model runtime: Ollama
-- Default model: qwen3:4b
+- Default packaged model: deepseek-r1:1.5b
+- Secondary packaged model: phi3.5
+- Windows shell: WebView2 host wrapping the local app runtime
 
 Why this stack:
 - Next.js gives us a strong foundation for a polished AI-style interface.
@@ -41,7 +43,8 @@ Why this stack:
 - SQLAlchemy plus Alembic gives us a standard schema and migration workflow without requiring Node or Prisma.
 - SQLite is the easiest reliable local database for a single-user offline Windows app.
 - Ollama handles local model inference, so we do not need to ship Python ML code.
-- `qwen3:4b` is the default model because it is a good balance of quality, chat ability, coding help, and local footprint.
+- `deepseek-r1:1.5b` is the default packaged model because it is small enough for older Windows laptops while still providing reasoning-style output that can drive the thinking view.
+- `phi3.5` is the secondary packaged model for an additional lightweight fallback option.
 
 ## Important Distribution Rule
 
@@ -49,9 +52,9 @@ Users must not need to install Docker, PostgreSQL, MySQL, Node, or any other ext
 
 How that works:
 - Python is the developer/runtime language for the app codebase, but the final Windows installer can bundle the Python runtime so end users do not need to install Python manually.
-- The final installer ships with the app runtime and UI packaged locally.
-- The installer can also bundle Ollama and the model files, or download them during install if needed.
-- The app should launch from the installer or a desktop shortcut without extra setup.
+- The final installer ships with the app runtime and UI packaged locally, wrapped in a WebView2 shell.
+- The installer should bundle Ollama plus a local model store when possible, and it should treat `deepseek-r1:1.5b` and `phi3.5` as the packaged model pair.
+- The app should launch from the installer or a desktop shortcut without extra setup and should run from the installed directory.
 
 Developer setup rule:
 - A fresh GitHub clone should be runnable with a small set of normal commands.
@@ -60,6 +63,7 @@ Developer setup rule:
 - Prefer `python -m venv`, `pip install -r requirements.txt`, `npm install`, and one app start command per side if we keep the frontend and backend split during development.
 - If we add helper scripts, they must reduce setup, not increase it.
 - Supported development Python versions are 3.12 or 3.13. Do not use Python 3.14 for now because some native packages in the stack may not have wheels for it yet.
+- When packaging, prefer local runtime assets over network downloads. A fresh install may provision missing pieces only as a fallback, but the preferred path is to ship them in the installer payload.
 
 ## Core Architecture
 
@@ -228,7 +232,7 @@ We will implement the project in stages.
 ### Stage 3 - Installer
 - [x] Bundle app runtime.
 - [ ] Bundle or provision Ollama.
-- [ ] Package model files.
+- [ ] Package model files for `deepseek-r1:1.5b` and `phi3.5`.
 - [ ] Create Windows installer.
 - [ ] Verify first-run experience.
 
@@ -298,7 +302,7 @@ Repo status:
 - Memory upload and dataset import now live in a compact header widget instead of the sidebar.
 - The UI theme can now be loaded from and saved to local settings.
 - The app should still boot its UI even if the Ollama model inventory endpoint is temporarily unavailable.
-- The public installer should stay small and provision Ollama plus the default model on first launch instead of embedding model weights inside `setup.exe`.
+- The public installer should prioritize a self-contained payload for the WebView2 shell, Ollama runtime, and bundled model store instead of depending on post-install downloads.
 - Chat conversations can now be renamed and deleted from the sidebar.
 - The sidebar can now filter conversations by title.
 - Keep iterating toward a cleaner, less cluttered visual language that feels closer to the minimal AI-app examples.
@@ -306,13 +310,14 @@ Repo status:
 - This file now defines the working direction.
 - The current UI polish pass should keep reducing card clutter and emphasizing open, list-like surfaces.
 - The current UI polish pass is actively flattening the sidebar, composer, and chat chrome so the app feels closer to a minimal reference AI interface.
+- The packaging pass is shifting toward an app-local WebView2 shell with seeded Ollama models so the installed directory can run the whole experience directly.
 - Startup now uses a loading/error overlay with retry instead of a static ready message.
 - New conversations now start cleanly without the canned greeting message.
 - Chat autoscroll now only jumps to the bottom when sending a message, then leaves reading control to the user.
 - The welcome landing state should remain the default main-panel entry point until the user explicitly opens a conversation from the sidebar.
 - A first preview packaging flow now exists that stages the standalone frontend and backend into `dist/preview` for local testing.
 - The preview bundle now also creates a local Python virtual environment and copies `node.exe` so the staged app can run from bundled runtimes instead of the developer machine's global installs.
-- The public installer path now provisions Ollama from the official Windows installer on first launch and pulls `qwen3:4b` automatically if it is missing.
+- The public installer path should now favor a WebView2-based shell plus bundled Ollama/runtime assets, and it should seed `deepseek-r1:1.5b` plus `phi3.5` from the installed directory when available.
 - Installer scaffolding now exists with shared launch/stop scripts, a `run-app.cmd` entry point, and a generated Inno Setup script under `dist/installer`.
 
 ## Open Product Notes

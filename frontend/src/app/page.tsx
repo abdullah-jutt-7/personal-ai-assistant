@@ -64,7 +64,7 @@ export default function Page() {
   const [liveReasoningSeconds, setLiveReasoningSeconds] = useState<number | null>(null);
   const [isAssistantStreaming, setIsAssistantStreaming] = useState(false);
   const [theme, setTheme] = useState<Theme>("dark");
-  const [activeModel, setActiveModel] = useState("qwen3:4b");
+  const [activeModel, setActiveModel] = useState("deepseek-r1:1.5b");
   const [installedModels, setInstalledModels] = useState<InstalledModel[]>([]);
   const [isCompactViewport, setIsCompactViewport] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -270,7 +270,7 @@ export default function Page() {
         console.error(error);
       }
 
-      const nextModel = modelData.ollama_model ?? health.model ?? "qwen3:4b";
+      const nextModel = modelData.ollama_model ?? health.model ?? "deepseek-r1:1.5b";
       setActiveModel(nextModel);
       if (themeData.theme === "dark" || themeData.theme === "light") {
         setTheme(themeData.theme);
