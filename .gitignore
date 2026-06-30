@@ -20,6 +20,10 @@ frontend/node_modules/
 data/
 backend/data/
 
+# Build and cache outputs
+build/
+.cache/
+
 # Repo-local Ollama model store
 models/*
 !models/README.md
@@ -31,6 +35,12 @@ ollama/*
 # Generated preview artifacts
 dist/preview/logs/
 dist/preview/models/
+dist/preview/ollama/
+dist/preview/webview2-runtime/
+dist/preview/IntelliText.exe
+dist/preview/Microsoft.Web.WebView2.Core.dll
+dist/preview/Microsoft.Web.WebView2.WinForms.dll
+dist/preview/WebView2Loader.dll
 
 # Editor / OS
 .DS_Store

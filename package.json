@@ -10,6 +10,7 @@
     "start:web": "npm run start --workspace frontend",
     "dev:api": "python -m backend.app.main",
     "dev": "concurrently \"npm run dev:web\" \"npm run dev:api\"",
+    "build:host": "powershell.exe -ExecutionPolicy Bypass -File scripts/build-webview2-host.ps1",
     "package:preview": "npm run build:web && powershell.exe -ExecutionPolicy Bypass -File scripts/package-preview.ps1",
     "preview": "powershell.exe -ExecutionPolicy Bypass -File scripts/run-preview.ps1",
     "preview:stop": "powershell.exe -ExecutionPolicy Bypass -File scripts/stop-preview.ps1",

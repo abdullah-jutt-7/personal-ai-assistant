@@ -22,7 +22,13 @@ $pidFile = Join-Path $RootPath "logs\app.pids.json"
 
 if (Test-Path $pidFile) {
   $state = Get-Content $pidFile -Raw | ConvertFrom-Json
-  $processIds = @($state.backend_pid, $state.frontend_pid) | Where-Object { $_ }
+  $processIds = @()
+
+  $state.PSObject.Properties | ForEach-Object {
+    if ($_.Value -is [int] -and $_.Value -gt 0) {
+      $processIds += $_.Value
+    }
+  }
 
   foreach ($processId in $processIds) {
     try {
@@ -36,7 +42,7 @@ if (Test-Path $pidFile) {
   Remove-Item -LiteralPath $pidFile -Force -ErrorAction SilentlyContinue
 }
 
-$portsToClear = if ($Mode -eq "backend") { @(8000) } else { @(3000, 8000) }
+$portsToClear = if ($Mode -eq "backend") { @(8000) } else { @(3000, 8000, 11435) }
 foreach ($port in $portsToClear) {
   $listenerLines = netstat -ano | Select-String ":$port"
   $listenerPids = @()

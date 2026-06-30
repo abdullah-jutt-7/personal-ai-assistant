@@ -321,9 +321,11 @@ Repo status:
 - The welcome landing state should remain the default main-panel entry point until the user explicitly opens a conversation from the sidebar.
 - A first preview packaging flow now exists that stages the standalone frontend and backend into `dist/preview` for local testing.
 - The preview bundle now also creates a local Python virtual environment and copies `node.exe` so the staged app can run from bundled runtimes instead of the developer machine's global installs.
+- The preview bundle now also stages the native WebView2 host exe and its companion DLLs so the app launches like a desktop application instead of a script wrapper.
 - The public installer path should now favor a WebView2-based shell plus bundled Ollama/runtime assets, and it should seed `deepseek-r1:1.5b` plus `qwen3:1.7b` from the installed directory when available.
 - The repo-local `models/` directory is now seeded with the packaged Ollama manifests and blobs for `deepseek-r1:1.5b` and `qwen3:1.7b`.
 - Installer scaffolding now exists with shared launch/stop scripts, a `run-app.cmd` entry point, and a generated Inno Setup script under `dist/installer`.
+- The stop helper now reclaims the preview ports for the bundled shell, backend, and Ollama runtime so repeated launches do not stack duplicate local services.
 
 ## Open Product Notes
 

@@ -7,6 +7,8 @@ $frontendPublic = Join-Path $repoRoot "frontend\public"
 $backendSource = Join-Path $repoRoot "backend"
 $repoModels = Join-Path $repoRoot "models"
 $repoOllama = Join-Path $repoRoot "ollama"
+$hostBuildScript = Join-Path $repoRoot "scripts\build-webview2-host.ps1"
+$hostBuildRoot = Join-Path $repoRoot "build\host"
 $distRoot = Join-Path $repoRoot "dist\preview"
 $repoPython = Join-Path $repoRoot ".venv\Scripts\python.exe"
 
@@ -19,6 +21,8 @@ if (-not (Test-Path $repoPython)) {
 if (-not (Test-Path $frontendStandalone)) {
   throw "Missing standalone frontend build output at $frontendStandalone. Run the frontend build first."
 }
+
+& powershell.exe -ExecutionPolicy Bypass -File $hostBuildScript | Out-Null
 
 if (-not (Test-Path $distRoot)) {
   New-Item -ItemType Directory -Path $distRoot | Out-Null
@@ -52,6 +56,10 @@ Copy-Item -Path (Join-Path $repoRoot "scripts\run-preview.ps1") -Destination (Jo
 Copy-Item -Path (Join-Path $repoRoot "scripts\stop-preview.ps1") -Destination (Join-Path $distRoot "stop-preview.ps1") -Force
 Copy-Item -Path (Join-Path $repoRoot "scripts\bootstrap-ollama.ps1") -Destination (Join-Path $distRoot "bootstrap-ollama.ps1") -Force
 
+if (Test-Path $hostBuildRoot) {
+  Copy-Item -Path (Join-Path $hostBuildRoot "*") -Destination $distRoot -Recurse -Force
+}
+
 if (Test-Path $repoModels) {
   Copy-Item -Path $repoModels -Destination (Join-Path $distRoot "models") -Recurse -Force
 }
@@ -82,7 +90,11 @@ $launcher = @'
 @echo off
 setlocal
 set SCRIPT_DIR=%~dp0
-powershell.exe -ExecutionPolicy Bypass -File "%SCRIPT_DIR%launch-app.ps1" -Mode preview -RootPath "%SCRIPT_DIR%"
+if exist "%SCRIPT_DIR%IntelliText.exe" (
+  start "" "%SCRIPT_DIR%IntelliText.exe"
+) else (
+  powershell.exe -ExecutionPolicy Bypass -File "%SCRIPT_DIR%launch-app.ps1" -Mode preview -RootPath "%SCRIPT_DIR%"
+)
 '@
 Set-Content -Path (Join-Path $distRoot "run-app.cmd") -Value $launcher -Encoding ASCII
 

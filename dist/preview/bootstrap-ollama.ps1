@@ -1,6 +1,15 @@
 param(
   [Parameter(Mandatory = $false)]
-  [string]$ModelName = "qwen3:4b",
+  [string[]]$ModelNames = @("deepseek-r1:1.5b", "qwen3:1.7b"),
+
+  [Parameter(Mandatory = $false)]
+  [string]$ModelsDir = "",
+
+  [Parameter(Mandatory = $false)]
+  [string]$OllamaExePath = "",
+
+  [Parameter(Mandatory = $false)]
+  [string]$OllamaBaseUrl = "http://127.0.0.1:11434",
 
   [Parameter(Mandatory = $false)]
   [int]$ReadyTimeoutSeconds = 180
@@ -25,7 +34,7 @@ function Get-OllamaCommand {
 
 function Test-OllamaApiReady {
   try {
-    Invoke-RestMethod -Method Get -Uri "http://127.0.0.1:11434/api/tags" -TimeoutSec 5 | Out-Null
+    Invoke-RestMethod -Method Get -Uri "$OllamaBaseUrl/api/tags" -TimeoutSec 5 | Out-Null
     return $true
   } catch {
     return $false
@@ -50,7 +59,14 @@ function Wait-OllamaApiReady {
   return $false
 }
 
-$ollamaExe = Get-OllamaCommand
+$bundledOllamaExe = $OllamaExePath.Trim()
+if ($bundledOllamaExe -and (Test-Path $bundledOllamaExe)) {
+  $ollamaExe = $bundledOllamaExe
+  Write-Host "Using bundled Ollama runtime at $bundledOllamaExe."
+} else {
+  $ollamaExe = Get-OllamaCommand
+}
+
 if (-not $ollamaExe) {
   Write-Host "Installing Ollama from the official Windows installer..."
   & powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "irm https://ollama.com/install.ps1 | iex"
@@ -61,6 +77,18 @@ if (-not $ollamaExe) {
   throw "Ollama could not be found after installation."
 }
 
+$resolvedModelsDir = $ModelsDir.Trim()
+if ($resolvedModelsDir -and (Test-Path $resolvedModelsDir)) {
+  $env:OLLAMA_MODELS = $resolvedModelsDir
+  Write-Host "Using bundled Ollama models directory at $resolvedModelsDir."
+}
+
+$resolvedBaseUrl = $OllamaBaseUrl.Trim().TrimEnd("/")
+if (-not $resolvedBaseUrl) {
+  $resolvedBaseUrl = "http://127.0.0.1:11434"
+}
+$env:OLLAMA_HOST = $resolvedBaseUrl
+
 if (-not (Test-OllamaApiReady)) {
   try {
     Start-Process -FilePath $ollamaExe -ArgumentList "serve" -WindowStyle Hidden | Out-Null
@@ -70,16 +98,25 @@ if (-not (Test-OllamaApiReady)) {
 }
 
 if (-not (Wait-OllamaApiReady -TimeoutSeconds $ReadyTimeoutSeconds)) {
-  throw "Ollama did not become ready at http://127.0.0.1:11434."
+  throw "Ollama did not become ready at $resolvedBaseUrl."
 }
 
-$tagsResponse = Invoke-RestMethod -Method Get -Uri "http://127.0.0.1:11434/api/tags" -TimeoutSec 15
+$tagsResponse = Invoke-RestMethod -Method Get -Uri "$resolvedBaseUrl/api/tags" -TimeoutSec 15
 $existingModels = @()
 if ($tagsResponse.models) {
   $existingModels = @($tagsResponse.models | ForEach-Object { $_.name })
 }
 
-if ($existingModels -notcontains $ModelName) {
-  Write-Host "Downloading Ollama model $ModelName..."
-  & $ollamaExe pull $ModelName
+foreach ($modelName in $ModelNames) {
+  $normalizedModelName = $modelName.Trim()
+  if (-not $normalizedModelName) {
+    continue
+  }
+
+  if ($existingModels -contains $normalizedModelName) {
+    continue
+  }
+
+  Write-Host "Downloading Ollama model $normalizedModelName..."
+  & $ollamaExe pull $normalizedModelName
 }
