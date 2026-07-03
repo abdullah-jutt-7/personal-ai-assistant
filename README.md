@@ -20,7 +20,8 @@ IntelliText is the local AI assistant for this project.
 
 ```powershell
 python -m venv .venv
-.venv\Scripts\Activate.ps1
+--windows ".venv\Scripts\Activate.ps1"
+-- macbook "source .venv/bin/activate"
 pip install -r requirements.txt
 npm install
 npm run dev

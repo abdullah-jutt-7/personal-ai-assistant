@@ -42,6 +42,21 @@ type StreamPayload = {
   detail?: string;
 };
 
+function getSafeLocalStorage() {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const storage = window.localStorage;
+    if (!storage || typeof storage.getItem !== "function" || typeof storage.setItem !== "function") {
+      return null;
+    }
+
+    return storage;
+  } catch {
+    return null;
+  }
+}
+
 export default function Page() {
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<number | null>(null);
@@ -85,14 +100,15 @@ export default function Page() {
   }, [conversationSearch, conversations]);
 
   useEffect(() => {
-    const storedTheme = window.localStorage.getItem(themeStorageKey) as Theme | null;
+    const storage = getSafeLocalStorage();
+    const storedTheme = storage?.getItem(themeStorageKey) as Theme | null;
     const systemTheme = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
     setTheme(storedTheme ?? systemTheme);
   }, []);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
-    window.localStorage.setItem(themeStorageKey, theme);
+    getSafeLocalStorage()?.setItem(themeStorageKey, theme);
   }, [theme]);
 
   useEffect(() => {
